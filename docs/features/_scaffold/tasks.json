@@ -1,0 +1,64 @@
+{
+  "slug": "_scaffold",
+  "prerequisites": [
+    ".NET 10 SDK (dotnet --list-sdks shows 10.x)",
+    "Docker Desktop running (docker info succeeds)",
+    "Node.js LTS + npm (node --version)"
+  ],
+  "tasks": [
+    {
+      "id": "S1",
+      "title": "Create the solution, API host and shared build settings",
+      "layer": "scaffold",
+      "deps": [],
+      "acs": [],
+      "dod": "`dotnet build Rochambeau.slnx` succeeds with zero warnings. Rochambeau.slnx contains src/Rochambeau.Api (net10.0, Minimal API). Directory.Build.props sets Nullable, ImplicitUsings, TreatWarningsAsErrors and analyzers. .editorconfig exists. Program.cs wires ProblemDetails, the global exception handler, OpenAPI, TimeProvider, SignalR and GET /health. Empty src/Rochambeau.Api/Common/ and Modules/ folders exist.",
+      "files_hint": ["Rochambeau.slnx", "Directory.Build.props", ".editorconfig", "global.json", "src/Rochambeau.Api/Program.cs", "src/Rochambeau.Api/Common/", "src/Rochambeau.Api/Modules/"]
+    },
+    {
+      "id": "S2",
+      "title": "Wire the backend test harness and the app-boots smoke test",
+      "layer": "scaffold",
+      "deps": ["S1"],
+      "acs": [],
+      "dod": "`dotnet test Rochambeau.slnx` passes. tests/Rochambeau.UnitTests (xUnit) contains a trivial passing test. tests/Rochambeau.IntegrationTests (xUnit + WebApplicationFactory + Testcontainers PostgreSQL fixture) contains a smoke test: the app boots against a real PostgreSQL container and GET /health returns 200.",
+      "files_hint": ["tests/Rochambeau.UnitTests/", "tests/Rochambeau.IntegrationTests/"]
+    },
+    {
+      "id": "S3",
+      "title": "Set up PostgreSQL, AppDbContext and EF Core migrations with an initial empty migration",
+      "layer": "scaffold",
+      "deps": ["S1"],
+      "acs": [],
+      "dod": "`docker compose up -d` starts PostgreSQL 17. AppDbContext (Npgsql, snake_case naming) is registered from configuration. A dotnet-ef local tool manifest exists. The initial empty migration in src/Rochambeau.Api/Common/Persistence/Migrations/ applies (`dotnet ef database update`) and reverts (`dotnet ef database update 0`) cleanly. The S2 integration smoke test still passes with migrations applied to the container.",
+      "files_hint": ["docker-compose.yml", ".config/dotnet-tools.json", "src/Rochambeau.Api/Common/Persistence/", "src/Rochambeau.Api/appsettings.Development.json"]
+    },
+    {
+      "id": "S4",
+      "title": "Create the React + TypeScript web client with tooling and a smoke test",
+      "layer": "scaffold",
+      "deps": ["S1"],
+      "acs": [],
+      "dod": "In web/: `npm run build`, `npm test` (Vitest + React Testing Library; a smoke test renders the App shell) and `npm run lint` (ESLint + Prettier check) all succeed. Tailwind CSS, React Router, TanStack Query and @microsoft/signalr are installed. The Vite dev server proxies /api and /hubs to the API. Empty src/features/, src/shared/ui/ and src/shared/realtime/ folders exist.",
+      "files_hint": ["web/package.json", "web/vite.config.ts", "web/src/main.tsx", "web/src/App.tsx", "web/src/index.css", "web/eslint.config.js"]
+    },
+    {
+      "id": "S5",
+      "title": "Add the GitHub Actions CI workflow (build + test + lint)",
+      "layer": "scaffold",
+      "deps": ["S2", "S3", "S4"],
+      "acs": [],
+      "dod": "The workflow at .github/workflows/ci.yml is valid YAML and runs on push and pull_request. It installs .NET 10 and Node LTS and runs exactly the map's build_cmd, test_cmd and lint_cmd (Docker is available on ubuntu-latest for Testcontainers). Running the same commands locally succeeds. It cannot run remotely until a GitHub remote exists.",
+      "files_hint": [".github/workflows/ci.yml"]
+    },
+    {
+      "id": "S6",
+      "title": "Write CLAUDE.md from the foundation conventions",
+      "layer": "scaffold",
+      "deps": ["S1"],
+      "acs": [],
+      "dod": "CLAUDE.md states the build/test/lint/migration commands, the module layout and boundary rules, the error/ID/time/persistence/real-time conventions, and the frontend layout, consistent with docs/architecture-map.md and ADRs 0001–0003.",
+      "files_hint": ["CLAUDE.md"]
+    }
+  ]
+}
