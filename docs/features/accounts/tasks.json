@@ -35,7 +35,7 @@
         "tests/Rochambeau.UnitTests/Identity/"
       ],
       "file": "docs/features/accounts/tasks/t02-identity-domain-rules.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T3",
