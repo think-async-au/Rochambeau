@@ -657,7 +657,7 @@
         "tests/Rochambeau.IntegrationTests/Host/BadRequestBodyTests.cs"
       ],
       "file": "docs/features/accounts/tasks/t33-contract-403-415.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T34",
