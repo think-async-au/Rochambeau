@@ -1,10 +1,13 @@
 using System.Globalization;
+using Microsoft.AspNetCore.Identity;
 using Rochambeau.Api.Common.Http;
 using Rochambeau.Api.Common.Results;
 using Rochambeau.Api.Modules.Identity.Application;
 using Rochambeau.Api.Modules.Identity.Application.LogIn;
+using Rochambeau.Api.Modules.Identity.Application.Profiles;
 using Rochambeau.Api.Modules.Identity.Application.Register;
 using Rochambeau.Api.Modules.Identity.Contracts;
+using Rochambeau.Api.Modules.Identity.Infrastructure.Persistence;
 
 namespace Rochambeau.Api.Modules.Identity.Endpoints;
 
@@ -27,6 +30,12 @@ internal static class IdentityEndpoints
         api.MapPost("/session", LogInAsync)
             .WithName("logIn")
             .AllowAnonymous();
+
+        api.MapDelete("/session", LogOutAsync)
+            .WithName("logOut");
+
+        api.MapGet("/me", GetOwnProfileAsync)
+            .WithName("getOwnProfile");
 
         return app;
     }
@@ -51,6 +60,19 @@ internal static class IdentityEndpoints
 
         SetRetryAfter(result.Error!, context, time);
         return result.Error!.ToProblem();
+    }
+
+    /// <summary>Ends the session held by this browser only; the security stamp is not rotated (AC-07).</summary>
+    private static async Task<IResult> LogOutAsync(SignInManager<Account> signIn)
+    {
+        await signIn.SignOutAsync().ConfigureAwait(false);
+        return TypedResults.NoContent();
+    }
+
+    private static async Task<IResult> GetOwnProfileAsync(GetOwnProfileHandler handler, CancellationToken cancellationToken)
+    {
+        var result = await handler.HandleAsync(cancellationToken).ConfigureAwait(false);
+        return result.IsSuccess ? TypedResults.Ok(OwnProfileResponse.Of(result.Value)) : result.Error!.ToProblem();
     }
 
     /// <summary><c>Retry-After</c> in whole seconds until the lockout ends (openapi.yaml · logIn 423).</summary>

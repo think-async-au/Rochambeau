@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Rochambeau.Api.Common.Results;
+using Rochambeau.Api.Common.Time;
 using Rochambeau.Api.Modules.Identity.Contracts;
 using Rochambeau.Api.Modules.Identity.Domain;
 using Rochambeau.Api.Modules.Identity.Infrastructure.Persistence;
@@ -58,7 +59,7 @@ public sealed partial class RegisterAccountHandler(
             UserName = input.Username.Value,
             Email = input.Email.Value,
             Role = AccountRole.Player,
-            CreatedAt = time.GetUtcNow(),
+            CreatedAt = time.GetUtcNowForStorage(),
         };
 
         Error? conflict;

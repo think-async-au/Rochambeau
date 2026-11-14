@@ -210,7 +210,7 @@
         "tests/Rochambeau.IntegrationTests/Identity/"
       ],
       "file": "docs/features/accounts/tasks/t10-own-profile-and-logout.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T11",

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Rochambeau.Api.Common.Persistence;
 using Rochambeau.Api.Common.Results;
+using Rochambeau.Api.Common.Time;
 using Rochambeau.Api.Modules.Identity.Domain;
 using Rochambeau.Api.Modules.Identity.Infrastructure.Persistence;
 
@@ -58,7 +59,7 @@ public sealed partial class LogInHandler(
             return Result.Failure<OwnProfile>(InvalidCredentials);
         }
 
-        var now = time.GetUtcNow();
+        var now = time.GetUtcNowForStorage();
         if (account.LockoutEnd is { } end && end > now)
         {
             // Attempts during the block neither count nor extend it (AC-06).
