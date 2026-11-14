@@ -588,6 +588,96 @@
       ],
       "file": "docs/features/accounts/tasks/t29-web-field-error-focus.md",
       "status": "done"
+    },
+    {
+      "id": "T30",
+      "title": "Pin the in-flight lockout branches of log in with deterministic tests",
+      "layer": "tests",
+      "deps": [
+        "T22"
+      ],
+      "acs": [
+        "AC-06"
+      ],
+      "dod": "Integration tests with an IPasswordHasher<Account> decorator that locks the row (lockout_end = now + 15 min, separate DbContext) during VerifyHashedPassword: a correct password gets 423 with the stored lockoutEnd, no Set-Cookie, unchanged access_failed_count; a wrong password gets 423 with the stored end and counts nothing. Unit + integration + format clean.",
+      "files_hint": [
+        "tests/Rochambeau.IntegrationTests/Identity/LogInTests.cs"
+      ],
+      "file": "docs/features/accounts/tasks/t30-login-in-flight-lock-tests.md",
+      "status": "todo"
+    },
+    {
+      "id": "T31",
+      "title": "Record the per-connection hub deadline in ADR-0004 and require automatic reconnect",
+      "layer": "docs",
+      "deps": [
+        "T20"
+      ],
+      "acs": [
+        "AC-08"
+      ],
+      "dod": "accounts ADR-0004 Consequences records that a hub connection's 7-day deadline moves only on connect and hub invocations (not on the Player's HTTP activity), and that every web/src/shared/realtime hook uses withAutomaticReconnect so a refused call reconnects with the still-valid cookie; CLAUDE.md Real-time convention carries the reconnect rule.",
+      "files_hint": [
+        "docs/features/accounts/adr/0004-expose-acting-account-through-identity-contracts.md",
+        "CLAUDE.md"
+      ],
+      "file": "docs/features/accounts/tasks/t31-adr-hub-deadline-reconnect.md",
+      "status": "todo"
+    },
+    {
+      "id": "T32",
+      "title": "Prove that opening a real-time connection counts as activity",
+      "layer": "tests",
+      "deps": [
+        "T20"
+      ],
+      "acs": [
+        "AC-08"
+      ],
+      "dod": "Fake-clock integration test: register at t0; at +6 days POST the test hub's negotiate with the cookie and assert a renewed session Set-Cookie; at a further +6 days GET /api/v1/me with the renewed cookie answers 200. Unit + integration + format clean.",
+      "files_hint": [
+        "tests/Rochambeau.IntegrationTests/Identity/HubSessionRevalidationTests.cs"
+      ],
+      "file": "docs/features/accounts/tasks/t32-negotiate-counts-as-activity.md",
+      "status": "todo"
+    },
+    {
+      "id": "T33",
+      "title": "Bring 403 and 415 error responses inside the contract",
+      "layer": "ports",
+      "deps": [
+        "T23"
+      ],
+      "acs": [],
+      "dod": "openapi.yaml errorCode enum lists identity.forbidden with a Forbidden response component; a request whose Content-Type is not JSON on POST /api/v1/accounts or /api/v1/session answers 400 common.invalid_request (unit test on the ProblemDetails customization + integration case in BadRequestBodyTests). Unit + integration + format clean.",
+      "files_hint": [
+        "src/Rochambeau.Api/Common/Http/ProblemDetailsDefaults.cs",
+        "docs/features/accounts/contracts/openapi.yaml",
+        "tests/Rochambeau.UnitTests/Common/ProblemDetailsDefaultsTests.cs",
+        "tests/Rochambeau.IntegrationTests/Host/BadRequestBodyTests.cs"
+      ],
+      "file": "docs/features/accounts/tasks/t33-contract-403-415.md",
+      "status": "todo"
+    },
+    {
+      "id": "T34",
+      "title": "Resolve ICurrentAccount in a hub's OnDisconnectedAsync",
+      "layer": "infra",
+      "deps": [
+        "T19"
+      ],
+      "acs": [
+        "AC-08"
+      ],
+      "dod": "SessionRevalidationHubFilter.OnDisconnectedAsync sets HubCallerPrincipal from the caller before next; unit test on the filter + integration test where the test hub's OnDisconnectedAsync records ICurrentAccount.Current. Unit + integration + format clean.",
+      "files_hint": [
+        "src/Rochambeau.Api/Modules/Identity/Infrastructure/SessionRevalidationHubFilter.cs",
+        "tests/Rochambeau.UnitTests/Identity/SessionRevalidationHubFilterTests.cs",
+        "tests/Rochambeau.IntegrationTests/Infrastructure/TestHubHost.cs",
+        "tests/Rochambeau.IntegrationTests/Identity/HubSessionRevalidationTests.cs"
+      ],
+      "file": "docs/features/accounts/tasks/t34-hub-disconnect-current-account.md",
+      "status": "todo"
     }
   ]
 }

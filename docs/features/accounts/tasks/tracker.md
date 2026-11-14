@@ -37,5 +37,10 @@
 | T27 | [Keep the Player view and show an error when log-out fails](./t27-web-logout-failure.md) | ui | a.udalov | XS | T26 | done | COMMIT |
 | T28 | [Offer Register and Log-in links on the landing page](./t28-web-landing-links.md) | ui | a.udalov | XS | T27 | done | COMMIT |
 | T29 | [Move focus to the first invalid field after a failed submit](./t29-web-field-error-focus.md) | ui | a.udalov | XS | T28 | done | COMMIT |
+| T30 | [Pin the in-flight lockout branches of log in with deterministic tests](./t30-login-in-flight-lock-tests.md) | tests | a.udalov | S | T22 | todo | SELECT |
+| T31 | [Record the per-connection hub deadline in ADR-0004 and require automatic reconnect](./t31-adr-hub-deadline-reconnect.md) | docs | a.udalov | XS | T20 | todo | SELECT |
+| T32 | [Prove that opening a real-time connection counts as activity](./t32-negotiate-counts-as-activity.md) | tests | a.udalov | XS | T20 | todo | SELECT |
+| T33 | [Bring 403 and 415 error responses inside the contract](./t33-contract-403-415.md) | ports | a.udalov | S | T23 | todo | SELECT |
+| T34 | [Resolve ICurrentAccount in a hub's OnDisconnectedAsync](./t34-hub-disconnect-current-account.md) | infra | a.udalov | S | T19 | todo | SELECT |
 
-**Total:** 29 tasks (T19–T29 are follow-ups from `_review/review-2026-11-14.md`).
+**Total:** 34 tasks (T19–T29 are follow-ups from `_review/review-2026-11-14.md`; T30–T34 from `_review/review-2026-11-14-2.md`).
