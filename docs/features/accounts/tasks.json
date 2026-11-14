@@ -604,7 +604,7 @@
         "tests/Rochambeau.IntegrationTests/Identity/LogInTests.cs"
       ],
       "file": "docs/features/accounts/tasks/t30-login-in-flight-lock-tests.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T31",

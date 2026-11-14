@@ -2,8 +2,11 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
 using Rochambeau.Api.Common.Persistence;
 using Rochambeau.Api.Modules.Identity.Infrastructure.Persistence;
@@ -222,6 +225,50 @@ public sealed class LogInTests(PostgresFixture postgres)
         Assert.Equal(usernameB, (await b.ReadJsonAsync()).GetProperty("username").GetString());
     }
 
+    [Theory]
+    [InlineData(IdentityApi.DefaultPassword)]
+    [InlineData(_wrongPassword)]
+    public async Task AC06_an_attempt_whose_account_is_locked_while_its_password_is_checked_is_locked_out(string password)
+    {
+        // Deterministic stand-in for a parallel attempt: the account is locked between this
+        // attempt's lock check and its write, so only the conditional writes can refuse it.
+        var time = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        var trap = new LockDuringPasswordCheck(time.GetUtcNow() + TimeSpan.FromMinutes(15));
+        await using var factory = new ApiFactory(postgres, time);
+        await using var host = factory.WithWebHostBuilder(builder => builder.ConfigureTestServices(services =>
+            services.AddScoped<IPasswordHasher<Account>>(sp => new LockingPasswordHasher(
+                new PasswordHasher<Account>(sp.GetService<IOptions<PasswordHasherOptions>>()), trap, sp.GetRequiredService<IServiceScopeFactory>()))));
+        var email = IdentityApi.NextEmail();
+        using (var registering = host.CreateClient())
+        {
+            // Its own browser, so the log-in below carries no session cookie of its own.
+            registering.DefaultRequestHeaders.Add("X-Rochambeau-Client", "web");
+            using var registered = await IdentityApi.RegisterAsync(registering, IdentityApi.NextUsername(), email);
+            Assert.Equal(HttpStatusCode.Created, registered.StatusCode);
+        }
+
+        using var client = host.CreateClient();
+        client.DefaultRequestHeaders.Add("X-Rochambeau-Client", "web");
+        for (var i = 0; i < 2; i++)
+        {
+            using var failed = await LogInAsync(client, email, _wrongPassword);
+            Assert.Equal(HttpStatusCode.Unauthorized, failed.StatusCode);
+        }
+
+        trap.Arm();
+        using var response = await LogInAsync(client, email, password);
+
+        Assert.True(trap.Sprung);
+        await AssertLockedAsync(response, trap.LockoutEnd);
+        Assert.False(response.Headers.Contains("Set-Cookie"));
+        await using var scope = host.Services.CreateAsyncScope();
+        var normalized = email.ToUpperInvariant();
+        var account = await scope.ServiceProvider.GetRequiredService<AppDbContext>().Set<Account>()
+            .SingleAsync(a => a.NormalizedEmail == normalized);
+        Assert.Equal(2, account.AccessFailedCount);
+        Assert.Equal(trap.LockoutEnd, account.LockoutEnd!.Value, TimeSpan.FromMilliseconds(1));
+    }
+
     [Fact]
     public async Task Log_in_without_the_client_header_is_rejected()
     {
@@ -275,5 +322,43 @@ public sealed class LogInTests(PostgresFixture postgres)
         var body = JsonNode.Parse(await response.Content.ReadAsStringAsync())!.AsObject();
         body.Remove("traceId");
         return body;
+    }
+
+    /// <summary>When armed, locks the account once, from another DbContext, during the next password check.</summary>
+    private sealed class LockDuringPasswordCheck(DateTimeOffset lockoutEnd)
+    {
+        private int _armed;
+
+        public DateTimeOffset LockoutEnd { get; } = lockoutEnd;
+
+        public bool Sprung { get; private set; }
+
+        public void Arm() => Volatile.Write(ref _armed, 1);
+
+        public bool TryDisarm() => Interlocked.Exchange(ref _armed, 0) == 1;
+
+        public void MarkSprung() => Sprung = true;
+    }
+
+    private sealed class LockingPasswordHasher(
+        IPasswordHasher<Account> inner, LockDuringPasswordCheck trap, IServiceScopeFactory scopes) : IPasswordHasher<Account>
+    {
+        public string HashPassword(Account user, string password) => inner.HashPassword(user, password);
+
+        public PasswordVerificationResult VerifyHashedPassword(Account user, string hashedPassword, string providedPassword)
+        {
+            if (user.Id != Guid.Empty && trap.TryDisarm())
+            {
+                using var scope = scopes.CreateScope();
+                var end = trap.LockoutEnd;
+                var locked = scope.ServiceProvider.GetRequiredService<AppDbContext>().Set<Account>()
+                    .Where(a => a.Id == user.Id)
+                    .ExecuteUpdate(s => s.SetProperty(a => a.LockoutEnd, end));
+                Assert.Equal(1, locked);
+                trap.MarkSprung();
+            }
+
+            return inner.VerifyHashedPassword(user, hashedPassword, providedPassword);
+        }
     }
 }
