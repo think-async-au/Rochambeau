@@ -20,7 +20,10 @@ internal static class TestHubHost
 
     public static WebApplicationFactory<Program> WithTestHub(this ApiFactory factory) =>
         factory.WithWebHostBuilder(builder => builder.ConfigureTestServices(services =>
-            services.AddSingleton<IStartupFilter, TestHubStartupFilter>()));
+        {
+            services.AddSingleton<IStartupFilter, TestHubStartupFilter>();
+            services.AddSingleton<TestHubDisconnects>();
+        }));
 
     /// <summary>
     /// A WebSocket SignalR client over the TestServer that sends the given cookie and the client header.
@@ -79,11 +82,28 @@ internal static class TestHubHost
 }
 
 /// <summary>Test-only hub; invoking <see cref="Echo"/> is «a hub call, for example a move» (SAD §6 critical flow 2).</summary>
-internal sealed class TestHub(ICurrentAccount currentAccount) : Hub
+internal sealed class TestHub(ICurrentAccount currentAccount, TestHubDisconnects disconnects) : Hub
 {
     /// <summary>What a Play or Chat hub method would see as «who is acting» (AC-08).</summary>
     public AccountIdentity? WhoAmI() => currentAccount.Current;
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "SignalR hub methods must be instance methods.")]
     public string Echo(string value) => value;
+
+    /// <summary>What Play would see as «who left», for example to record a forfeit (AC-08).</summary>
+    public override Task OnDisconnectedAsync(Exception? exception)
+    {
+        disconnects.Record(currentAccount.Current);
+        return base.OnDisconnectedAsync(exception);
+    }
+}
+
+/// <summary>The current account the test hub saw in its last <see cref="Hub.OnDisconnectedAsync"/>.</summary>
+internal sealed class TestHubDisconnects
+{
+    private readonly TaskCompletionSource<AccountIdentity?> _seen = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    public Task<AccountIdentity?> Seen => _seen.Task;
+
+    public void Record(AccountIdentity? account) => _seen.TrySetResult(account);
 }

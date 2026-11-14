@@ -9,8 +9,8 @@ files_hint: ["src/Rochambeau.Api/Modules/Identity/Infrastructure/SessionRevalida
 owner: "a.udalov"
 estimate: "S"
 origin: "review-2026-11-14-2 R5"
-status: "todo"
-step: "SELECT"
+status: "done"
+step: "COMMIT"
 ---
 
 <!-- Follow-up task added by implement from the review record. The finding is quoted from

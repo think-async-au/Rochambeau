@@ -69,6 +69,20 @@ public sealed partial class SessionRevalidationHubFilter(
         await next(context).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// «Who left» for the hub's disconnect handler (for example a forfeit). No revalidation: the
+    /// connection is already gone, so there is nothing left to refuse.
+    /// </summary>
+    public Task OnDisconnectedAsync(
+        HubLifetimeContext context, Exception? exception, Func<HubLifetimeContext, Exception?, Task> next)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(next);
+
+        context.ServiceProvider.GetRequiredService<HubCallerPrincipal>().User = context.Context.User;
+        return next(context, exception);
+    }
+
     /// <summary>The connecting request's cookie-ticket expiry, already slid by the cookie middleware.</summary>
     private static DateTimeOffset? TicketExpiry(HubCallerContext caller) =>
         caller.GetHttpContext()?.Features.Get<IAuthenticateResultFeature>()?.AuthenticateResult?.Properties?.ExpiresUtc;

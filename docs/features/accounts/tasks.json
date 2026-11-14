@@ -677,7 +677,7 @@
         "tests/Rochambeau.IntegrationTests/Identity/HubSessionRevalidationTests.cs"
       ],
       "file": "docs/features/accounts/tasks/t34-hub-disconnect-current-account.md",
-      "status": "todo"
+      "status": "done"
     }
   ]
 }

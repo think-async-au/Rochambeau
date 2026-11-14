@@ -41,6 +41,6 @@
 | T31 | [Record the per-connection hub deadline in ADR-0004 and require automatic reconnect](./t31-adr-hub-deadline-reconnect.md) | docs | a.udalov | XS | T20 | todo | SELECT |
 | T32 | [Prove that opening a real-time connection counts as activity](./t32-negotiate-counts-as-activity.md) | tests | a.udalov | XS | T20 | todo | SELECT |
 | T33 | [Bring 403 and 415 error responses inside the contract](./t33-contract-403-415.md) | ports | a.udalov | S | T23 | todo | SELECT |
-| T34 | [Resolve ICurrentAccount in a hub's OnDisconnectedAsync](./t34-hub-disconnect-current-account.md) | infra | a.udalov | S | T19 | todo | SELECT |
+| T34 | [Resolve ICurrentAccount in a hub's OnDisconnectedAsync](./t34-hub-disconnect-current-account.md) | infra | a.udalov | S | T19 | done | COMMIT |
 
 **Total:** 34 tasks (T19–T29 are follow-ups from `_review/review-2026-11-14.md`; T30–T34 from `_review/review-2026-11-14-2.md`).
