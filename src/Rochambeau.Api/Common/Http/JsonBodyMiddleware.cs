@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http.Features;
 using Rochambeau.Api.Common.Results;
 
 namespace Rochambeau.Api.Common.Http;
@@ -21,7 +22,7 @@ public sealed class JsonBodyMiddleware(RequestDelegate next)
 
         var request = context.Request;
         if (request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase)
-            && HasBody(request)
+            && HasBody(context)
             && !request.HasJsonContentType())
         {
             await InvalidRequest.ToProblem().ExecuteAsync(context).ConfigureAwait(false);
@@ -31,8 +32,18 @@ public sealed class JsonBodyMiddleware(RequestDelegate next)
         await next(context).ConfigureAwait(false);
     }
 
-    private static bool HasBody(HttpRequest request) =>
-        request.ContentLength > 0 || request.Headers.TransferEncoding.Count > 0;
+    /// <summary>
+    /// The server's body-detection feature covers every protocol (HTTP/2 and HTTP/3 have no
+    /// Transfer-Encoding, so a streamed body there carries no length). The length and
+    /// Transfer-Encoding test is the fallback for a host without that feature.
+    /// </summary>
+    private static bool HasBody(HttpContext context)
+    {
+        var request = context.Request;
+        return context.Features.Get<IHttpRequestBodyDetectionFeature>()?.CanHaveBody == true
+            || request.ContentLength > 0
+            || request.Headers.TransferEncoding.Count > 0;
+    }
 }
 
 public static class JsonBodyExtensions
