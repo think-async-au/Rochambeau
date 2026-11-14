@@ -34,6 +34,7 @@ Traceability: the scope is the "accounts" bullet of the owner-accepted core-play
 - **Deleting or deactivating an account, and banning.** Banning belongs to minimal moderation (roadmap step 6). Self-deletion has no audience need yet.
 - **Social or third-party login** (signing in with an outside account provider). It is extra integration work with no portfolio value at this stage.
 - **Granting the administrator role through the portal.** There is no admin section yet (roadmap step 9). The role is granted by whoever operates the portal.
+- **Two-factor login and a Moderator role.** Both are in the target architecture (`target-architecture.md`), but they come later: 2FA is roadmap step 13, and the Moderator arrives with the forum (step 8). This step keeps login and roles open to extension, but builds neither.
 
 ## 4. User stories
 
