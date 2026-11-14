@@ -9,8 +9,8 @@ files_hint: ["web/src/shared/api/"]
 owner: "a.udalov"
 estimate: "S"
 context_budget: "S"   # measured: 38 inlined lines
-status: "todo"
-step: ""
+status: "done"
+step: "COMMIT"
 ---
 
 <!-- Self-contained task: the slice this task needs is inlined below, each chunk with a provenance

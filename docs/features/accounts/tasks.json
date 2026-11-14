@@ -316,7 +316,7 @@
         "web/src/shared/api/"
       ],
       "file": "docs/features/accounts/tasks/t15-web-api-client-and-me-query.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T16",
