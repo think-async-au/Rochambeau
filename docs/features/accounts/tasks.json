@@ -383,6 +383,211 @@
       ],
       "file": "docs/features/accounts/tasks/t18-web-profile-screens.md",
       "status": "done"
+    },
+    {
+      "id": "T19",
+      "title": "Resolve ICurrentAccount from the hub caller inside hub invocations",
+      "layer": "infra",
+      "deps": [
+        "T13"
+      ],
+      "acs": [
+        "AC-08"
+      ],
+      "dod": "Integration test: a test-hub method returning `ICurrentAccount.Current` yields the logged-in Player's id, username and role over **WebSockets and LongPolling**. `SessionRevalidationHubFilter` sets a scoped holder from `HubCallerContext.User` that `CurrentAccount` reads before the accessor. Unit + integration + `dotnet format --verify-no-changes` clean.",
+      "files_hint": [
+        "src/Rochambeau.Api/Modules/Identity/Infrastructure/",
+        "src/Rochambeau.Api/Modules/Identity/IdentityModule.cs",
+        "tests/Rochambeau.IntegrationTests/Infrastructure/TestHubHost.cs",
+        "tests/Rochambeau.IntegrationTests/Identity/HubSessionRevalidationTests.cs"
+      ],
+      "file": "docs/features/accounts/tasks/t19-hub-scoped-current-account.md",
+      "status": "todo"
+    },
+    {
+      "id": "T20",
+      "title": "Reject hub invocations once the session ticket has expired",
+      "layer": "infra",
+      "deps": [
+        "T19"
+      ],
+      "acs": [
+        "AC-08"
+      ],
+      "dod": "Fake-clock integration test: an invocation 7 days + 1 minute after the last activity is refused as not authenticated; one before expiry still succeeds. Unit + integration + format clean.",
+      "files_hint": [
+        "src/Rochambeau.Api/Modules/Identity/Infrastructure/SessionRevalidationHubFilter.cs",
+        "tests/Rochambeau.IntegrationTests/Identity/HubSessionRevalidationTests.cs"
+      ],
+      "file": "docs/features/accounts/tasks/t20-hub-ticket-expiry.md",
+      "status": "todo"
+    },
+    {
+      "id": "T21",
+      "title": "Add the mandatory login and registration-cap edge-case tests",
+      "layer": "tests",
+      "deps": [],
+      "acs": [
+        "AC-05",
+        "AC-06",
+        "AC-15"
+      ],
+      "dod": "Three integration tests asserting (a), (b), (c). Production code is expected to already satisfy them, so a first-run green is checked by mutation (temporarily breaking the guarded behaviour turns each red). Integration + format clean.",
+      "files_hint": [
+        "tests/Rochambeau.IntegrationTests/Identity/LogInTests.cs",
+        "tests/Rochambeau.IntegrationTests/Identity/RegistrationCapAndRaceTests.cs"
+      ],
+      "file": "docs/features/accounts/tasks/t21-login-and-cap-edge-tests.md",
+      "status": "todo"
+    },
+    {
+      "id": "T22",
+      "title": "Make the lockout check and failure count atomic under concurrent log-ins",
+      "layer": "app",
+      "deps": [
+        "T21"
+      ],
+      "acs": [
+        "AC-06"
+      ],
+      "dod": "Integration test firing ~20 wrong passwords in parallel: at most 5 are evaluated as failures before the block (the rest answer 423), and a correct password arriving while locked gets no session. Failure write and success reset are conditional on `lockout_end IS NULL OR lockout_end <= now`; zero rows → 423 from the stored end. Unit + integration + format clean.",
+      "files_hint": [
+        "src/Rochambeau.Api/Modules/Identity/Application/LogIn/LogIn.cs",
+        "tests/Rochambeau.IntegrationTests/Identity/LogInTests.cs"
+      ],
+      "file": "docs/features/accounts/tasks/t22-atomic-lockout.md",
+      "status": "todo"
+    },
+    {
+      "id": "T23",
+      "title": "Give request-binding failures a ProblemDetails errorCode",
+      "layer": "ports",
+      "deps": [
+        "T22"
+      ],
+      "acs": [
+        "AC-02"
+      ],
+      "dod": "Integration tests: a malformed and an empty body on both endpoints return 400 ProblemDetails carrying a contract-listed `errorCode`. Unit + integration + format clean.",
+      "files_hint": [
+        "src/Rochambeau.Api/Common/Http/",
+        "src/Rochambeau.Api/Program.cs",
+        "docs/features/accounts/contracts/openapi.yaml",
+        "tests/Rochambeau.IntegrationTests/Identity/RegisterTests.cs",
+        "tests/Rochambeau.IntegrationTests/Identity/LogInTests.cs"
+      ],
+      "file": "docs/features/accounts/tasks/t23-binding-failure-error-code.md",
+      "status": "todo"
+    },
+    {
+      "id": "T24",
+      "title": "Apply the client-header check to negotiate with a trailing slash",
+      "layer": "ports",
+      "deps": [],
+      "acs": [],
+      "dod": "Integration test: `POST …/negotiate/` without the header is rejected like the slash-less path. Integration + format clean.",
+      "files_hint": [
+        "src/Rochambeau.Api/Common/Http/ClientHeaderMiddleware.cs",
+        "tests/Rochambeau.IntegrationTests/Host/ClientHeaderTests.cs"
+      ],
+      "file": "docs/features/accounts/tasks/t24-negotiate-trailing-slash.md",
+      "status": "todo"
+    },
+    {
+      "id": "T25",
+      "title": "Make the module-boundary architecture test see method-body references",
+      "layer": "tests",
+      "deps": [],
+      "acs": [
+        "AC-08"
+      ],
+      "dod": "Unit test: an offender that only calls `db.Set<Account>()` inside an async method, and one that only reads a static Identity-internal member in a method body, are both detected; the real assembly still passes. Unit + format clean.",
+      "files_hint": [
+        "tests/Rochambeau.UnitTests/Identity/ArchitectureTests.cs",
+        "tests/Rochambeau.UnitTests/Rochambeau.UnitTests.csproj"
+      ],
+      "file": "docs/features/accounts/tasks/t25-architecture-test-il-scan.md",
+      "status": "todo"
+    },
+    {
+      "id": "T26",
+      "title": "Treat any 401 from an authenticated query as logged out, and keep me fresh briefly",
+      "layer": "ui",
+      "deps": [
+        "T18"
+      ],
+      "acs": [
+        "AC-08",
+        "AC-10",
+        "AC-13b"
+      ],
+      "dod": "RTL test: `me` 200 + profile 401 → \"Log in or register first.\" is shown. A 401 from any query clears `me` (global `QueryCache` `onError`). The `me` query has a short `staleTime` so the `setMe` comment holds. `npm --prefix web test`, `lint`, `build` clean.",
+      "files_hint": [
+        "web/src/main.tsx",
+        "web/src/shared/api/",
+        "web/src/features/profile/ProfilePages.test.tsx"
+      ],
+      "file": "docs/features/accounts/tasks/t26-web-401-clears-me.md",
+      "status": "todo"
+    },
+    {
+      "id": "T27",
+      "title": "Keep the Player view and show an error when log-out fails",
+      "layer": "ui",
+      "deps": [
+        "T26"
+      ],
+      "acs": [
+        "AC-07"
+      ],
+      "dod": "RTL tests: DELETE 500 → still the Player view + \"Could not log out. Please try again.\"; 401 → treated as logged out. Web test, lint, build clean.",
+      "files_hint": [
+        "web/src/features/auth/LogoutButton.tsx",
+        "web/src/features/auth/RequireAuth.test.tsx"
+      ],
+      "file": "docs/features/accounts/tasks/t27-web-logout-failure.md",
+      "status": "todo"
+    },
+    {
+      "id": "T28",
+      "title": "Offer Register and Log-in links on the landing page",
+      "layer": "ui",
+      "deps": [
+        "T27"
+      ],
+      "acs": [
+        "AC-01",
+        "AC-07"
+      ],
+      "dod": "RTL test: a Visitor sees \"Create account\" and \"Log in\" links; a Player sees \"My profile\". Web test, lint, build clean.",
+      "files_hint": [
+        "web/src/App.tsx",
+        "web/src/features/home/"
+      ],
+      "file": "docs/features/accounts/tasks/t28-web-landing-links.md",
+      "status": "todo"
+    },
+    {
+      "id": "T29",
+      "title": "Move focus to the first invalid field after a failed submit",
+      "layer": "ui",
+      "deps": [
+        "T28"
+      ],
+      "acs": [
+        "AC-02",
+        "AC-03"
+      ],
+      "dod": "RTL test: after a 400 with field errors, focus is on the first `aria-invalid=\"true\"` input (Register and Log in). Web test, lint, build clean.",
+      "files_hint": [
+        "web/src/features/auth/RegisterPage.tsx",
+        "web/src/features/auth/LoginPage.tsx",
+        "web/src/shared/ui/TextField.tsx",
+        "web/src/features/auth/RegisterPage.test.tsx",
+        "web/src/features/auth/LoginPage.test.tsx"
+      ],
+      "file": "docs/features/accounts/tasks/t29-web-field-error-focus.md",
+      "status": "todo"
     }
   ]
 }

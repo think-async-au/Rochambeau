@@ -26,5 +26,16 @@
 | T16 | [Build the Register screen with field-level errors](./t16-web-register-screen.md) | ui | a.udalov | M | T15 | done | COMMIT |
 | T17 | [Build the Log-in screen, the log-out action and the logged-in route guard](./t17-web-login-logout-route-guard.md) | ui | a.udalov | M | T16 | done | COMMIT |
 | T18 | [Build the own Profile and public Profile screens](./t18-web-profile-screens.md) | ui | a.udalov | M | T17 | done | COMMIT |
+| T19 | [Resolve ICurrentAccount from the hub caller inside hub invocations](./t19-hub-scoped-current-account.md) | infra | a.udalov | S | T13 | todo | — |
+| T20 | [Reject hub invocations once the session ticket has expired](./t20-hub-ticket-expiry.md) | infra | a.udalov | S | T19 | todo | — |
+| T21 | [Add the mandatory login and registration-cap edge-case tests](./t21-login-and-cap-edge-tests.md) | tests | a.udalov | S | — | todo | — |
+| T22 | [Make the lockout check and failure count atomic under concurrent log-ins](./t22-atomic-lockout.md) | app | a.udalov | M | T21 | todo | — |
+| T23 | [Give request-binding failures a ProblemDetails errorCode](./t23-binding-failure-error-code.md) | ports | a.udalov | S | T22 | todo | — |
+| T24 | [Apply the client-header check to negotiate with a trailing slash](./t24-negotiate-trailing-slash.md) | ports | a.udalov | XS | — | todo | — |
+| T25 | [Make the module-boundary architecture test see method-body references](./t25-architecture-test-il-scan.md) | tests | a.udalov | S | — | todo | — |
+| T26 | [Treat any 401 from an authenticated query as logged out, and keep me fresh briefly](./t26-web-401-clears-me.md) | ui | a.udalov | S | T18 | todo | — |
+| T27 | [Keep the Player view and show an error when log-out fails](./t27-web-logout-failure.md) | ui | a.udalov | XS | T26 | todo | — |
+| T28 | [Offer Register and Log-in links on the landing page](./t28-web-landing-links.md) | ui | a.udalov | XS | T27 | todo | — |
+| T29 | [Move focus to the first invalid field after a failed submit](./t29-web-field-error-focus.md) | ui | a.udalov | XS | T28 | todo | — |
 
-**Total:** 18 tasks, ~15.5 person-days (S ≈ ½ day, M ≈ 1 day).
+**Total:** 29 tasks (T19–T29 are follow-ups from `_review/review-2026-11-14.md`).
