@@ -21,7 +21,7 @@
 | T11 | [Serve the public Profile through GET /api/v1/profiles/{username}](./t11-public-profile-endpoint.md) | ports | a.udalov | S | T7 | done | COMMIT |
 | T12 | [Add the operator-command hook and the grant-admin / revoke-admin ChangeRole flow](./t12-operator-command-change-role.md) | app | a.udalov | M | T10 | done | COMMIT |
 | T13 | [Revalidate the session on every hub invocation with SessionRevalidationHubFilter](./t13-session-revalidation-hub-filter.md) | infra | a.udalov | M | T12 | done | COMMIT |
-| T14 | [Measure the spec §6 latency targets for register, log in and view a profile](./t14-latency-nfr-tests.md) | tests | a.udalov | S | T8, T9, T11 | todo | — |
+| T14 | [Measure the spec §6 latency targets for register, log in and view a profile](./t14-latency-nfr-tests.md) | tests | a.udalov | S | T8, T9, T11 | done | COMMIT |
 | T15 | [Add the shared API client and the «me» query to the SPA](./t15-web-api-client-and-me-query.md) | ui | a.udalov | S | — | todo | — |
 | T16 | [Build the Register screen with field-level errors](./t16-web-register-screen.md) | ui | a.udalov | M | T15 | todo | — |
 | T17 | [Build the Log-in screen, the log-out action and the logged-in route guard](./t17-web-login-logout-route-guard.md) | ui | a.udalov | M | T16 | todo | — |
