@@ -59,6 +59,9 @@ public sealed class HubSessionRevalidationTests(PostgresFixture postgres)
         var (username, cookie) = await RegisterAsync(host);
         await using var connection = host.CreateHubConnection(cookie, transport);
         await connection.StartAsync();
+        // A completed call proves the server finished OnConnectedAsync; SignalR runs a hub's
+        // OnDisconnectedAsync only for a connection whose OnConnectedAsync completed.
+        Assert.Equal("rock", await connection.InvokeAsync<string>("Echo", "rock"));
 
         await connection.StopAsync();
 
