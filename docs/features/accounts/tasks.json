@@ -639,7 +639,7 @@
         "tests/Rochambeau.IntegrationTests/Identity/HubSessionRevalidationTests.cs"
       ],
       "file": "docs/features/accounts/tasks/t32-negotiate-counts-as-activity.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T33",
