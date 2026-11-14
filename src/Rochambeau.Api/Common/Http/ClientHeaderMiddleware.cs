@@ -39,8 +39,9 @@ public sealed class ClientHeaderMiddleware(RequestDelegate next)
                 || HttpMethods.IsTrace(request.Method));
         }
 
+        // Routing ignores trailing slashes, so `…/negotiate/` reaches the same endpoint and must be guarded too.
         return request.Path.StartsWithSegments("/hubs", StringComparison.OrdinalIgnoreCase)
-            && request.Path.Value!.EndsWith("/negotiate", StringComparison.OrdinalIgnoreCase);
+            && request.Path.Value!.TrimEnd('/').EndsWith("/negotiate", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool HasClientHeader(HttpRequest request) =>

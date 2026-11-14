@@ -9,8 +9,8 @@ files_hint: ["src/Rochambeau.Api/Common/Http/ClientHeaderMiddleware.cs", "tests/
 owner: "a.udalov"
 estimate: "XS"
 origin: "review-2026-11-14 F10"
-status: "todo"
-step: "—"
+status: "done"
+step: "COMMIT"
 ---
 
 <!-- Follow-up task added by implement from the review record. The finding is quoted from

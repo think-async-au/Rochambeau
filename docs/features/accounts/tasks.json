@@ -491,7 +491,7 @@
         "tests/Rochambeau.IntegrationTests/Host/ClientHeaderTests.cs"
       ],
       "file": "docs/features/accounts/tasks/t24-negotiate-trailing-slash.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T25",

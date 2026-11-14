@@ -40,13 +40,17 @@ public sealed class ClientHeaderTests(PostgresFixture postgres)
         await AssertClientHeaderRequired(response);
     }
 
-    [Fact]
-    public async Task Signalr_negotiate_without_the_header_is_rejected()
+    [Theory]
+    [InlineData("/hubs/play/negotiate")]
+    [InlineData("/hubs/play/negotiate/")]
+    [InlineData("/hubs/play/negotiate//")]
+    [InlineData("/hubs/play/NEGOTIATE/")]
+    public async Task Signalr_negotiate_without_the_header_is_rejected(string path)
     {
         await using var factory = new ApiFactory(postgres);
         using var client = factory.CreateClient();
 
-        using var response = await client.PostAsync(new Uri("/hubs/play/negotiate?negotiateVersion=1", UriKind.Relative), null);
+        using var response = await client.PostAsync(new Uri($"{path}?negotiateVersion=1", UriKind.Relative), null);
 
         await AssertClientHeaderRequired(response);
     }
