@@ -360,7 +360,7 @@
         "web/src/App.tsx"
       ],
       "file": "docs/features/accounts/tasks/t17-web-login-logout-route-guard.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T18",

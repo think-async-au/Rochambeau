@@ -9,8 +9,8 @@ files_hint: ["web/src/features/auth/", "web/src/App.tsx"]
 owner: "a.udalov"
 estimate: "M"
 context_budget: "M"   # measured: 60 inlined lines
-status: "todo"
-step: ""
+status: "done"
+step: "COMMIT"
 ---
 
 <!-- Self-contained task: the slice this task needs is inlined below, each chunk with a provenance
