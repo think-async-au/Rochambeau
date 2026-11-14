@@ -28,7 +28,7 @@
 | T18 | [Build the own Profile and public Profile screens](./t18-web-profile-screens.md) | ui | a.udalov | M | T17 | done | COMMIT |
 | T19 | [Resolve ICurrentAccount from the hub caller inside hub invocations](./t19-hub-scoped-current-account.md) | infra | a.udalov | S | T13 | done | COMMIT |
 | T20 | [Reject hub invocations once the session ticket has expired](./t20-hub-ticket-expiry.md) | infra | a.udalov | S | T19 | done | COMMIT |
-| T21 | [Add the mandatory login and registration-cap edge-case tests](./t21-login-and-cap-edge-tests.md) | tests | a.udalov | S | — | todo | — |
+| T21 | [Add the mandatory login and registration-cap edge-case tests](./t21-login-and-cap-edge-tests.md) | tests | a.udalov | S | — | done | COMMIT |
 | T22 | [Make the lockout check and failure count atomic under concurrent log-ins](./t22-atomic-lockout.md) | app | a.udalov | M | T21 | todo | — |
 | T23 | [Give request-binding failures a ProblemDetails errorCode](./t23-binding-failure-error-code.md) | ports | a.udalov | S | T22 | todo | — |
 | T24 | [Apply the client-header check to negotiate with a trailing slash](./t24-negotiate-trailing-slash.md) | ports | a.udalov | XS | — | todo | — |

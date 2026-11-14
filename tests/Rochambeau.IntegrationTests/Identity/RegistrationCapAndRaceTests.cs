@@ -1,7 +1,10 @@
 using System.Net;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
+using Npgsql;
 using Rochambeau.Api.Common.Persistence;
 using Rochambeau.Api.Modules.Identity.Infrastructure.Persistence;
 using Rochambeau.IntegrationTests.Infrastructure;
@@ -70,6 +73,52 @@ public sealed class RegistrationCapAndRaceTests(PostgresFixture postgres)
 
         using var sixth = await IdentityApi.RegisterFromAsync(client, address);
         Assert.Equal(HttpStatusCode.TooManyRequests, sixth.StatusCode);
+    }
+
+    [Fact]
+    public async Task AC15_registration_fails_closed_while_the_database_is_unreachable_and_consumes_no_cap_slot()
+    {
+        var outage = new DatabaseOutage();
+        await using var factory = new ApiFactory(postgres, new FakeTimeProvider(DateTimeOffset.UtcNow));
+        await using var host = factory.WithWebHostBuilder(builder => builder.ConfigureTestServices(services =>
+            services.ConfigureDbContext<AppDbContext>(options => options.AddInterceptors(outage))));
+        using var client = host.CreateClient();
+        client.DefaultRequestHeaders.Add("X-Rochambeau-Client", "web");
+        var address = TestRemoteAddress.Next();
+        var failedName = IdentityApi.NextUsername();
+
+        outage.Down = true;
+        using var failed = await IdentityApi.RegisterFromAsync(client, address, failedName);
+        outage.Down = false;
+
+        Assert.Equal(HttpStatusCode.InternalServerError, failed.StatusCode);
+        Assert.False(failed.Headers.Contains("Set-Cookie"));
+        await using (var scope = host.Services.CreateAsyncScope())
+        {
+            var normalized = failedName.ToUpperInvariant();
+            Assert.Equal(0, await scope.ServiceProvider.GetRequiredService<AppDbContext>().Set<Account>()
+                .CountAsync(a => a.NormalizedUserName == normalized));
+        }
+
+        for (var i = 0; i < 5; i++)
+        {
+            using var ok = await IdentityApi.RegisterFromAsync(client, address);
+            Assert.Equal(HttpStatusCode.Created, ok.StatusCode);
+        }
+    }
+
+    /// <summary>Makes every new database connection fail while <see cref="Down"/> is set.</summary>
+    private sealed class DatabaseOutage : DbConnectionInterceptor
+    {
+        public volatile bool Down;
+
+        public override ValueTask<InterceptionResult> ConnectionOpeningAsync(
+            System.Data.Common.DbConnection connection, ConnectionEventData eventData, InterceptionResult result, CancellationToken cancellationToken = default) =>
+            Down ? throw new NpgsqlException("Test: the database is unreachable.") : ValueTask.FromResult(result);
+
+        public override InterceptionResult ConnectionOpening(
+            System.Data.Common.DbConnection connection, ConnectionEventData eventData, InterceptionResult result) =>
+            Down ? throw new NpgsqlException("Test: the database is unreachable.") : result;
     }
 
     [Fact]

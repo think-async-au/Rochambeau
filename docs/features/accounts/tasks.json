@@ -438,7 +438,7 @@
         "tests/Rochambeau.IntegrationTests/Identity/RegistrationCapAndRaceTests.cs"
       ],
       "file": "docs/features/accounts/tasks/t21-login-and-cap-edge-tests.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T22",

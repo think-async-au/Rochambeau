@@ -2,7 +2,11 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
+using Rochambeau.Api.Common.Persistence;
+using Rochambeau.Api.Modules.Identity.Infrastructure.Persistence;
 using Rochambeau.IntegrationTests.Infrastructure;
 
 namespace Rochambeau.IntegrationTests.Identity;
@@ -149,6 +153,47 @@ public sealed class LogInTests(PostgresFixture postgres)
     }
 
     [Fact]
+    public async Task AC05_log_in_with_an_unknown_email_creates_no_account_and_no_lockout_state()
+    {
+        await using var factory = new ApiFactory(postgres, new FakeTimeProvider(DateTimeOffset.UtcNow));
+        using var client = IdentityApi.CreateClient(factory);
+        var email = IdentityApi.NextEmail();
+
+        for (var i = 0; i < 6; i++)
+        {
+            using var failed = await LogInAsync(client, email, _wrongPassword);
+            Assert.Equal(HttpStatusCode.Unauthorized, failed.StatusCode);
+        }
+
+        Assert.Equal(0, await CountByEmailAsync(factory, email));
+        using var registered = await IdentityApi.RegisterAsync(client, IdentityApi.NextUsername(), email);
+        Assert.Equal(HttpStatusCode.Created, registered.StatusCode);
+        using var loggedIn = await LogInAsync(client, email, IdentityApi.DefaultPassword);
+        Assert.Equal(HttpStatusCode.OK, loggedIn.StatusCode);
+    }
+
+    [Fact]
+    public async Task AC06_a_lockout_of_one_account_does_not_block_another()
+    {
+        var time = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        await using var factory = new ApiFactory(postgres, time);
+        var (_, emailA) = await RegisterAsync(factory);
+        var (usernameB, emailB) = await RegisterAsync(factory);
+        using var client = IdentityApi.CreateClient(factory);
+        for (var i = 0; i < 5; i++)
+        {
+            (await LogInAsync(client, emailA, _wrongPassword)).Dispose();
+        }
+
+        using var lockedA = await LogInAsync(client, emailA, IdentityApi.DefaultPassword);
+        await AssertLockedAsync(lockedA, time.GetUtcNow() + TimeSpan.FromMinutes(15));
+
+        using var b = await LogInAsync(client, emailB, IdentityApi.DefaultPassword);
+        Assert.Equal(HttpStatusCode.OK, b.StatusCode);
+        Assert.Equal(usernameB, (await b.ReadJsonAsync()).GetProperty("username").GetString());
+    }
+
+    [Fact]
     public async Task Log_in_without_the_client_header_is_rejected()
     {
         await using var factory = new ApiFactory(postgres);
@@ -183,6 +228,14 @@ public sealed class LogInTests(PostgresFixture postgres)
         using var response = await IdentityApi.RegisterAsync(client, username, email);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         return (username, email);
+    }
+
+    private static async Task<int> CountByEmailAsync(ApiFactory factory, string email)
+    {
+        await using var scope = factory.Services.CreateAsyncScope();
+        var normalized = email.ToUpperInvariant();
+        return await scope.ServiceProvider.GetRequiredService<AppDbContext>().Set<Account>()
+            .CountAsync(a => a.NormalizedEmail == normalized);
     }
 
     private static Task<HttpResponseMessage> LogInAsync(HttpClient client, string? email, string? password) =>

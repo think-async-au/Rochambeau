@@ -9,8 +9,8 @@ files_hint: ["tests/Rochambeau.IntegrationTests/Identity/LogInTests.cs", "tests/
 owner: "a.udalov"
 estimate: "S"
 origin: "review-2026-11-14 F5"
-status: "todo"
-step: "—"
+status: "done"
+step: "COMMIT"
 ---
 
 <!-- Follow-up task added by implement from the review record. The finding is quoted from
