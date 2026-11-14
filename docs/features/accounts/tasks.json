@@ -120,7 +120,7 @@
         "tests/Rochambeau.UnitTests/Identity/"
       ],
       "file": "docs/features/accounts/tasks/t06-registration-cap.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T7",

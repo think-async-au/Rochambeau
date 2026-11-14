@@ -9,8 +9,8 @@ files_hint: ["src/Rochambeau.Api/Modules/Identity/Application/RegistrationCap/",
 owner: "a.udalov"
 estimate: "S"
 context_budget: "S"   # measured: 35 inlined lines
-status: "todo"
-step: ""
+status: "done"
+step: "COMMIT"
 ---
 
 <!-- Self-contained task: the slice this task needs is inlined below, each chunk with a provenance
