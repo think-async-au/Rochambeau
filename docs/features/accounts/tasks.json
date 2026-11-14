@@ -456,7 +456,7 @@
         "tests/Rochambeau.IntegrationTests/Identity/LogInTests.cs"
       ],
       "file": "docs/features/accounts/tasks/t22-atomic-lockout.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T23",

@@ -71,12 +71,15 @@ public sealed partial class LogInHandler(
             return Result.Failure<OwnProfile>(await RecordFailureAsync(account.Id, now).ConfigureAwait(false));
         }
 
-        if (account.AccessFailedCount != 0)
+        // Reset the count only while still unlocked: a parallel attempt may have started the block
+        // while this password was being checked, and then this correct guess must not log in (AC-06).
+        var reset = await db.Set<Account>()
+            .Where(a => a.Id == account.Id && (a.LockoutEnd == null || a.LockoutEnd <= now))
+            .ExecuteUpdateAsync(s => s.SetProperty(a => a.AccessFailedCount, 0))
+            .ConfigureAwait(false);
+        if (reset == 0)
         {
-            await db.Set<Account>()
-                .Where(a => a.Id == account.Id)
-                .ExecuteUpdateAsync(s => s.SetProperty(a => a.AccessFailedCount, 0))
-                .ConfigureAwait(false);
+            return Result.Failure<OwnProfile>(await StoredLockAsync(account.Id, now).ConfigureAwait(false));
         }
 
         await signIn.SignInAsync(account, isPersistent: true).ConfigureAwait(false);
@@ -89,33 +92,50 @@ public sealed partial class LogInHandler(
             Extensions = new Dictionary<string, object?> { [LockoutEndExtension] = end.UtcDateTime },
         };
 
+    /// <summary>
+    /// Counts one failure in a single statement that applies only while the account is unlocked, so
+    /// parallel attempts cannot get past the block (AC-06): the 5th failure in a row starts the block
+    /// and resets the count; an attempt that lost the race to a block counts nothing and answers locked.
+    /// </summary>
     private async Task<Error> RecordFailureAsync(Guid accountId, DateTimeOffset now)
     {
-        var failures = await db.Database
-            .SqlQuery<int>($"""
-                UPDATE identity.accounts SET access_failed_count = access_failed_count + 1
-                WHERE id = {accountId}
-                RETURNING access_failed_count AS "Value"
+        var max = LockoutPolicy.MaxFailedAttempts;
+        var end = now + LockoutPolicy.Duration;
+        var updated = await db.Database
+            .SqlQuery<DateTimeOffset?>($"""
+                UPDATE identity.accounts SET
+                    access_failed_count = CASE WHEN access_failed_count + 1 >= {max} THEN 0 ELSE access_failed_count + 1 END,
+                    lockout_end = CASE WHEN access_failed_count + 1 >= {max} THEN {end} ELSE lockout_end END
+                WHERE id = {accountId} AND (lockout_end IS NULL OR lockout_end <= {now})
+                RETURNING lockout_end AS "Value"
                 """)
             .ToListAsync()
             .ConfigureAwait(false);
 
-        if (failures.Count == 1 && failures[0] >= LockoutPolicy.MaxFailedAttempts)
+        if (updated.Count == 0)
         {
-            // The 5th failure in a row starts the block and resets the count (AC-06).
-            var end = now + LockoutPolicy.Duration;
-            await db.Set<Account>()
-                .Where(a => a.Id == accountId)
-                .ExecuteUpdateAsync(s => s
-                    .SetProperty(a => a.LockoutEnd, end)
-                    .SetProperty(a => a.AccessFailedCount, 0))
-                .ConfigureAwait(false);
+            return await StoredLockAsync(accountId, now).ConfigureAwait(false);
+        }
+
+        if (updated[0] is { } lockedUntil && lockedUntil > now)
+        {
             LogLockedOut(accountId);
-            return LockedOut(end);
+            return LockedOut(lockedUntil);
         }
 
         LogFailed(accountId);
         return InvalidCredentials;
+    }
+
+    /// <summary>The block a parallel attempt started; attempts during it neither count nor extend it.</summary>
+    private async Task<Error> StoredLockAsync(Guid accountId, DateTimeOffset now)
+    {
+        var end = await db.Set<Account>()
+            .Where(a => a.Id == accountId)
+            .Select(a => a.LockoutEnd)
+            .SingleAsync()
+            .ConfigureAwait(false);
+        return end is { } lockedUntil && lockedUntil > now ? LockedOut(lockedUntil) : InvalidCredentials;
     }
 
     private string DummyHash()

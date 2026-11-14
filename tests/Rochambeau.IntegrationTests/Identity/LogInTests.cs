@@ -16,6 +16,7 @@ namespace Rochambeau.IntegrationTests.Identity;
 public sealed class LogInTests(PostgresFixture postgres)
 {
     private const string _wrongPassword = "wrong-password-1";
+    private const int _failuresBeforeBlock = 4;
 
     [Fact]
     public async Task AC04_correct_email_in_any_case_with_spaces_and_password_logs_in()
@@ -170,6 +171,34 @@ public sealed class LogInTests(PostgresFixture postgres)
         Assert.Equal(HttpStatusCode.Created, registered.StatusCode);
         using var loggedIn = await LogInAsync(client, email, IdentityApi.DefaultPassword);
         Assert.Equal(HttpStatusCode.OK, loggedIn.StatusCode);
+    }
+
+    [Fact]
+    public async Task AC06_parallel_wrong_passwords_get_no_more_than_five_guesses()
+    {
+        var time = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        await using var factory = new ApiFactory(postgres, time);
+        var (_, email) = await RegisterAsync(factory);
+        using var client = IdentityApi.CreateClient(factory);
+
+        var responses = await Task.WhenAll(Enumerable.Range(0, 20).Select(_ => LogInAsync(client, email, _wrongPassword)));
+        try
+        {
+            var statuses = responses.Select(r => (int)r.StatusCode).ToList();
+            Assert.Equal(_failuresBeforeBlock, statuses.Count(s => s == 401));
+            Assert.Equal(20 - _failuresBeforeBlock, statuses.Count(s => s == 423));
+        }
+        finally
+        {
+            Array.ForEach(responses, r => r.Dispose());
+        }
+
+        await using var scope = factory.Services.CreateAsyncScope();
+        var normalized = email.ToUpperInvariant();
+        var account = await scope.ServiceProvider.GetRequiredService<AppDbContext>().Set<Account>()
+            .SingleAsync(a => a.NormalizedEmail == normalized);
+        Assert.Equal(0, account.AccessFailedCount);
+        Assert.Equal(time.GetUtcNow() + TimeSpan.FromMinutes(15), account.LockoutEnd!.Value, TimeSpan.FromMilliseconds(1));
     }
 
     [Fact]
