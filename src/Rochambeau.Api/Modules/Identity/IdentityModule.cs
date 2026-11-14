@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Rochambeau.Api.Common.Persistence;
+using Rochambeau.Api.Modules.Identity.Contracts;
 using Rochambeau.Api.Modules.Identity.Domain;
 using Rochambeau.Api.Modules.Identity.Infrastructure;
 using Rochambeau.Api.Modules.Identity.Infrastructure.Persistence;
@@ -35,9 +36,14 @@ public static class IdentityModule
                 options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-";
             })
             .AddSignInManager()
-            .AddEntityFrameworkStores<AppDbContext>();
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddClaimsPrincipalFactory<AccountClaimsPrincipalFactory>();
 
         services.AddSessionCookie();
+
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentAccount, CurrentAccount>();
+        services.AddScoped<IAccountDirectory, AccountDirectory>();
 
         // Deny by default (SAD §8): every endpoint needs a logged-in Account unless it opts out.
         services.AddAuthorizationBuilder()

@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Identity;
-using Rochambeau.Api.Modules.Identity.Domain;
+using Rochambeau.Api.Modules.Identity.Contracts;
 
 namespace Rochambeau.Api.Modules.Identity.Infrastructure.Persistence;
 

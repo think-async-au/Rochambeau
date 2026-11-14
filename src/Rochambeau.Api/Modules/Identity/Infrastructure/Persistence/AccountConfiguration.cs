@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Rochambeau.Api.Modules.Identity.Contracts;
 using Rochambeau.Api.Modules.Identity.Domain;
 
 namespace Rochambeau.Api.Modules.Identity.Infrastructure.Persistence;

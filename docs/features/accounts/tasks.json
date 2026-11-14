@@ -102,7 +102,7 @@
         "tests/Rochambeau.IntegrationTests/Identity/"
       ],
       "file": "docs/features/accounts/tasks/t05-identity-contracts-current-account.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T6",

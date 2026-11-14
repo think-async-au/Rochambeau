@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Rochambeau.Api.Common.Persistence;
-using Rochambeau.Api.Modules.Identity.Domain;
+using Rochambeau.Api.Modules.Identity.Contracts;
 using Rochambeau.Api.Modules.Identity.Infrastructure.Persistence;
 using Rochambeau.IntegrationTests.Infrastructure;
 

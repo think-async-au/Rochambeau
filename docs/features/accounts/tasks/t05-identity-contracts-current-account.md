@@ -9,8 +9,8 @@ files_hint: ["src/Rochambeau.Api/Modules/Identity/Contracts/", "src/Rochambeau.A
 owner: "a.udalov"
 estimate: "M"
 context_budget: "M"   # measured: 41 inlined lines
-status: "todo"
-step: ""
+status: "done"
+step: "COMMIT"
 ---
 
 <!-- Self-contained task: the slice this task needs is inlined below, each chunk with a provenance

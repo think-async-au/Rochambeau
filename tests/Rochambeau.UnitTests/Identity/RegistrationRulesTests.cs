@@ -1,4 +1,5 @@
 using Rochambeau.Api.Common.Results;
+using Rochambeau.Api.Modules.Identity.Contracts;
 using Rochambeau.Api.Modules.Identity.Domain;
 
 namespace Rochambeau.UnitTests.Identity;
