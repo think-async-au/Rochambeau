@@ -57,7 +57,7 @@
         "tests/Rochambeau.IntegrationTests/Identity/"
       ],
       "file": "docs/features/accounts/tasks/t03-account-entity-and-migration.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T4",

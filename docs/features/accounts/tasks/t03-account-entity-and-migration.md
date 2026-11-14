@@ -9,8 +9,8 @@ files_hint: ["docs/features/accounts/migrations/01_create_accounts.up.sql", "doc
 owner: "a.udalov"
 estimate: "M"
 context_budget: "M"   # measured: 68 inlined lines
-status: "todo"
-step: ""
+status: "done"
+step: "COMMIT"
 ---
 
 <!-- Self-contained task: the slice this task needs is inlined below, each chunk with a provenance
