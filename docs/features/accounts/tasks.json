@@ -1,0 +1,388 @@
+{
+  "slug": "accounts",
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Add Result/Error, the ProblemDetails mapping and the client-header filter to Common",
+      "layer": "ports",
+      "deps": [],
+      "acs": [
+        "AC-02"
+      ],
+      "dod": "Unit tests for `Error` → ProblemDetails mapping pass (status, `errorCode`, field-keyed `errors`); Integration test: unsafe `/api` request without `X-Rochambeau-Client` → `400 common.client_header_required`; `GET /health` still `200`; `Common/` references no Identity or module type.",
+      "files_hint": [
+        "src/Rochambeau.Api/Common/Results/",
+        "src/Rochambeau.Api/Common/Http/",
+        "src/Rochambeau.Api/Program.cs",
+        "tests/Rochambeau.UnitTests/Common/",
+        "tests/Rochambeau.IntegrationTests/Host/"
+      ],
+      "file": "docs/features/accounts/tasks/t01-common-results-problemdetails-client-header.md",
+      "status": "todo"
+    },
+    {
+      "id": "T2",
+      "title": "Encode the Identity domain rules: username, email, password, role, lockout and cap policy",
+      "layer": "domain",
+      "deps": [],
+      "acs": [
+        "AC-02",
+        "AC-03"
+      ],
+      "dod": "Unit tests cover every boundary in the edge table and pass; `Domain/` has no `using` of ASP.NET Core, EF Core or `Microsoft.AspNetCore.Identity`.",
+      "files_hint": [
+        "src/Rochambeau.Api/Modules/Identity/Domain/",
+        "tests/Rochambeau.UnitTests/Identity/"
+      ],
+      "file": "docs/features/accounts/tasks/t02-identity-domain-rules.md",
+      "status": "todo"
+    },
+    {
+      "id": "T3",
+      "title": "Map the Account entity to identity.accounts and promote the staged migration",
+      "layer": "migration",
+      "deps": [
+        "T2"
+      ],
+      "acs": [
+        "AC-03",
+        "AC-03b"
+      ],
+      "dod": "Staged migration promoted to the live `Common/Persistence/Migrations/`; `dotnet ef database update` applies it and `dotnet ef database update 0` reverts it, leaving no `identity` schema; Integration test proves both unique indexes and the CHECK, with the exact constraint names; `AppDbContext` has no reference to `Account`.",
+      "files_hint": [
+        "docs/features/accounts/migrations/01_create_accounts.up.sql",
+        "docs/features/accounts/migrations/01_create_accounts.down.sql",
+        "src/Rochambeau.Api/Modules/Identity/Infrastructure/Persistence/",
+        "src/Rochambeau.Api/Common/Persistence/Migrations/",
+        "tests/Rochambeau.IntegrationTests/Identity/"
+      ],
+      "file": "docs/features/accounts/tasks/t03-account-entity-and-migration.md",
+      "status": "todo"
+    },
+    {
+      "id": "T4",
+      "title": "Wire Identity core, the cookie session and deny-by-default authorization in IdentityModule",
+      "layer": "wiring",
+      "deps": [
+        "T1",
+        "T3"
+      ],
+      "acs": [
+        "AC-08"
+      ],
+      "dod": "Integration test: a probe endpoint registered only in the test host (e.g. via `IStartupFilter` in `WithWebHostBuilder`) answers anonymous calls with `401 identity.not_authenticated` and no redirect; Integration test resolves `IOptions<…>` from the host and asserts the cookie (Strict, Secure, HttpOnly, 7 d, sliding), stamp interval (zero), lockout (5 / 15 min) and password (8, no classes) values; Existing `SmokeTests` (`GET /health` → 200) still pass.",
+      "files_hint": [
+        "src/Rochambeau.Api/Modules/Identity/IdentityModule.cs",
+        "src/Rochambeau.Api/Modules/Identity/Infrastructure/",
+        "src/Rochambeau.Api/Program.cs",
+        "src/Rochambeau.Api/Rochambeau.Api.csproj",
+        "src/Rochambeau.Api/appsettings.json",
+        "tests/Rochambeau.IntegrationTests/Infrastructure/",
+        "tests/Rochambeau.IntegrationTests/Identity/"
+      ],
+      "file": "docs/features/accounts/tasks/t04-identity-core-cookie-session-wiring.md",
+      "status": "todo"
+    },
+    {
+      "id": "T5",
+      "title": "Expose ICurrentAccount and IAccountDirectory through Identity Contracts",
+      "layer": "infra",
+      "deps": [
+        "T4"
+      ],
+      "acs": [
+        "AC-08"
+      ],
+      "dod": "Unit tests: principal built by the claims factory → the right `AccountIdentity`; anonymous → \"nobody\"; Integration test: `IAccountDirectory` finds by id and by Username (case ignored), and returns \"not found\" for unknown and partial values; QG-4 architecture test passes.",
+      "files_hint": [
+        "src/Rochambeau.Api/Modules/Identity/Contracts/",
+        "src/Rochambeau.Api/Modules/Identity/Infrastructure/",
+        "src/Rochambeau.Api/Modules/Identity/IdentityModule.cs",
+        "tests/Rochambeau.UnitTests/Identity/",
+        "tests/Rochambeau.IntegrationTests/Identity/"
+      ],
+      "file": "docs/features/accounts/tasks/t05-identity-contracts-current-account.md",
+      "status": "todo"
+    },
+    {
+      "id": "T6",
+      "title": "Implement the in-process RegistrationCap sliding window",
+      "layer": "app",
+      "deps": [
+        "T2"
+      ],
+      "acs": [
+        "AC-15"
+      ],
+      "dod": "Unit tests for every edge case pass, including the 10-way parallel case; No address is logged or persisted; the cap state lives only in memory.",
+      "files_hint": [
+        "src/Rochambeau.Api/Modules/Identity/Application/RegistrationCap/",
+        "tests/Rochambeau.UnitTests/Identity/"
+      ],
+      "file": "docs/features/accounts/tasks/t06-registration-cap.md",
+      "status": "todo"
+    },
+    {
+      "id": "T7",
+      "title": "Register an Account through POST /api/v1/accounts",
+      "layer": "ports",
+      "deps": [
+        "T5"
+      ],
+      "acs": [
+        "AC-01",
+        "AC-02",
+        "AC-03",
+        "AC-14"
+      ],
+      "dod": "Integration tests for AC-01, AC-02, AC-03 and AC-14 pass against Testcontainers PostgreSQL; The `201` body has exactly `username`, `email`, `joinedAt`, `role`, and the cookie is set.",
+      "files_hint": [
+        "src/Rochambeau.Api/Modules/Identity/Application/Register/",
+        "src/Rochambeau.Api/Modules/Identity/Endpoints/",
+        "src/Rochambeau.Api/Modules/Identity/IdentityModule.cs",
+        "tests/Rochambeau.IntegrationTests/Identity/"
+      ],
+      "file": "docs/features/accounts/tasks/t07-register-endpoint.md",
+      "status": "todo"
+    },
+    {
+      "id": "T8",
+      "title": "Enforce the registration cap and prove the race guard on registration",
+      "layer": "app",
+      "deps": [
+        "T6",
+        "T7"
+      ],
+      "acs": [
+        "AC-03b",
+        "AC-15"
+      ],
+      "dod": "AC-03b concurrency tests (username and email) pass on every run: exactly one row, N−1 `409`; AC-15 tests pass with a fake clock, including \"failed attempts don't count\" and QG-1 (h).",
+      "files_hint": [
+        "src/Rochambeau.Api/Modules/Identity/Application/Register/",
+        "src/Rochambeau.Api/Modules/Identity/IdentityModule.cs",
+        "tests/Rochambeau.IntegrationTests/Infrastructure/",
+        "tests/Rochambeau.IntegrationTests/Identity/"
+      ],
+      "file": "docs/features/accounts/tasks/t08-registration-cap-and-race-guard.md",
+      "status": "todo"
+    },
+    {
+      "id": "T9",
+      "title": "Log in through POST /api/v1/session with lockout and enumeration-safe errors",
+      "layer": "ports",
+      "deps": [
+        "T7"
+      ],
+      "acs": [
+        "AC-04",
+        "AC-05",
+        "AC-06"
+      ],
+      "dod": "Integration tests for AC-04, AC-05, AC-06 pass; the AC-06 test uses the fake `TimeProvider`; Unknown-email and wrong-password responses are byte-identical in status, body and `errorCode`.",
+      "files_hint": [
+        "src/Rochambeau.Api/Modules/Identity/Application/LogIn/",
+        "src/Rochambeau.Api/Modules/Identity/Endpoints/",
+        "src/Rochambeau.Api/Modules/Identity/IdentityModule.cs",
+        "tests/Rochambeau.IntegrationTests/Identity/"
+      ],
+      "file": "docs/features/accounts/tasks/t09-login-endpoint-lockout.md",
+      "status": "todo"
+    },
+    {
+      "id": "T10",
+      "title": "Serve GET /api/v1/me and log out with DELETE /api/v1/session",
+      "layer": "ports",
+      "deps": [
+        "T9"
+      ],
+      "acs": [
+        "AC-07",
+        "AC-08",
+        "AC-09",
+        "AC-10"
+      ],
+      "dod": "Integration tests for AC-07, AC-08 (session-lifetime with fake clock), AC-09 and AC-10 pass; The `/me` response has exactly `username`, `email`, `joinedAt`, `role`.",
+      "files_hint": [
+        "src/Rochambeau.Api/Modules/Identity/Application/Profiles/",
+        "src/Rochambeau.Api/Modules/Identity/Endpoints/",
+        "src/Rochambeau.Api/Modules/Identity/IdentityModule.cs",
+        "tests/Rochambeau.IntegrationTests/Identity/"
+      ],
+      "file": "docs/features/accounts/tasks/t10-own-profile-and-logout.md",
+      "status": "todo"
+    },
+    {
+      "id": "T11",
+      "title": "Serve the public Profile through GET /api/v1/profiles/{username}",
+      "layer": "ports",
+      "deps": [
+        "T7"
+      ],
+      "acs": [
+        "AC-10",
+        "AC-11",
+        "AC-12"
+      ],
+      "dod": "Integration tests for AC-10, AC-11 and AC-12 pass; The `200` JSON has exactly `username`, `joinedAt`, `role`.",
+      "files_hint": [
+        "src/Rochambeau.Api/Modules/Identity/Application/Profiles/",
+        "src/Rochambeau.Api/Modules/Identity/Endpoints/",
+        "src/Rochambeau.Api/Modules/Identity/IdentityModule.cs",
+        "tests/Rochambeau.IntegrationTests/Identity/"
+      ],
+      "file": "docs/features/accounts/tasks/t11-public-profile-endpoint.md",
+      "status": "todo"
+    },
+    {
+      "id": "T12",
+      "title": "Add the operator-command hook and the grant-admin / revoke-admin ChangeRole flow",
+      "layer": "app",
+      "deps": [
+        "T10"
+      ],
+      "acs": [
+        "AC-13",
+        "AC-13b",
+        "AC-14"
+      ],
+      "dod": "Integration tests for AC-13, AC-13b (HTTP side) and AC-14 pass; the registry dispatch unit test passes; Running the API executable with `grant-admin <username>` changes the role and exits without serving HTTP (manual check noted in the PR); `CLAUDE.md` and `docs/architecture-map.md` list the `Commands/` layer.",
+      "files_hint": [
+        "src/Rochambeau.Api/Common/Commands/",
+        "src/Rochambeau.Api/Program.cs",
+        "src/Rochambeau.Api/Modules/Identity/Application/ChangeRole/",
+        "src/Rochambeau.Api/Modules/Identity/Commands/",
+        "src/Rochambeau.Api/Modules/Identity/IdentityModule.cs",
+        "tests/Rochambeau.UnitTests/Common/",
+        "tests/Rochambeau.IntegrationTests/Identity/",
+        "CLAUDE.md",
+        "docs/architecture-map.md"
+      ],
+      "file": "docs/features/accounts/tasks/t12-operator-command-change-role.md",
+      "status": "todo"
+    },
+    {
+      "id": "T13",
+      "title": "Revalidate the session on every hub invocation with SessionRevalidationHubFilter",
+      "layer": "infra",
+      "deps": [
+        "T12"
+      ],
+      "acs": [
+        "AC-08",
+        "AC-13b"
+      ],
+      "dod": "Integration test proves AC-13b over a hub connection: the connection is closed on the first invocation after the role change; The filter is registered globally (no per-hub opt-in).",
+      "files_hint": [
+        "src/Rochambeau.Api/Modules/Identity/Infrastructure/",
+        "src/Rochambeau.Api/Modules/Identity/IdentityModule.cs",
+        "tests/Rochambeau.IntegrationTests/Infrastructure/",
+        "tests/Rochambeau.IntegrationTests/Identity/"
+      ],
+      "file": "docs/features/accounts/tasks/t13-session-revalidation-hub-filter.md",
+      "status": "todo"
+    },
+    {
+      "id": "T14",
+      "title": "Measure the spec §6 latency targets for register, log in and view a profile",
+      "layer": "tests",
+      "deps": [
+        "T8",
+        "T9",
+        "T11"
+      ],
+      "acs": [
+        "AC-01",
+        "AC-04",
+        "AC-11"
+      ],
+      "dod": "Three latency tests pass locally against Testcontainers PostgreSQL, using the spec §6 method exactly.",
+      "files_hint": [
+        "tests/Rochambeau.IntegrationTests/Identity/Performance/"
+      ],
+      "file": "docs/features/accounts/tasks/t14-latency-nfr-tests.md",
+      "status": "todo"
+    },
+    {
+      "id": "T15",
+      "title": "Add the shared API client and the «me» query to the SPA",
+      "layer": "ui",
+      "deps": [],
+      "acs": [
+        "AC-08"
+      ],
+      "dod": "Vitest tests: header always sent; `401` → `null`; ProblemDetails, `errors` and `lockoutEnd` parsed; `npm --prefix web run lint` and `build` clean.",
+      "files_hint": [
+        "web/src/shared/api/"
+      ],
+      "file": "docs/features/accounts/tasks/t15-web-api-client-and-me-query.md",
+      "status": "todo"
+    },
+    {
+      "id": "T16",
+      "title": "Build the Register screen with field-level errors",
+      "layer": "ui",
+      "deps": [
+        "T15"
+      ],
+      "acs": [
+        "AC-01",
+        "AC-02",
+        "AC-03",
+        "AC-15"
+      ],
+      "dod": "RTL tests for success, field errors (password cleared, other input kept), both conflicts and the cap pass; `npm --prefix web test`, `lint` and `build` clean.",
+      "files_hint": [
+        "web/src/features/auth/",
+        "web/src/shared/ui/",
+        "web/src/App.tsx"
+      ],
+      "file": "docs/features/accounts/tasks/t16-web-register-screen.md",
+      "status": "todo"
+    },
+    {
+      "id": "T17",
+      "title": "Build the Log-in screen, the log-out action and the logged-in route guard",
+      "layer": "ui",
+      "deps": [
+        "T16"
+      ],
+      "acs": [
+        "AC-04",
+        "AC-05",
+        "AC-06",
+        "AC-07",
+        "AC-10"
+      ],
+      "dod": "RTL tests for login success, `401`, `423`, logout and the guard pass; `npm --prefix web test`, `lint` and `build` clean.",
+      "files_hint": [
+        "web/src/features/auth/",
+        "web/src/App.tsx"
+      ],
+      "file": "docs/features/accounts/tasks/t17-web-login-logout-route-guard.md",
+      "status": "todo"
+    },
+    {
+      "id": "T18",
+      "title": "Build the own Profile and public Profile screens",
+      "layer": "ui",
+      "deps": [
+        "T17"
+      ],
+      "acs": [
+        "AC-09",
+        "AC-10",
+        "AC-11",
+        "AC-12",
+        "AC-13"
+      ],
+      "dod": "RTL tests: own profile shows the email + role, public profile shows no email, the `404` message, and the Administrator label; `npm --prefix web test`, `lint` and `build` clean.",
+      "files_hint": [
+        "web/src/features/profile/",
+        "web/src/App.tsx"
+      ],
+      "file": "docs/features/accounts/tasks/t18-web-profile-screens.md",
+      "status": "todo"
+    }
+  ]
+}
