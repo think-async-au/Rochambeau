@@ -303,6 +303,248 @@ sequenceDiagram
     Web-->>P: asks to log in again, then sees the new role
 ```
 
+The flows below were added by `/sdd:sequences accounts`. They use the generic runtime vocabulary (`user`, `ui`, `service`, `data-store`, `client`); `service (Identity)` is the module from §5. All are synchronous: the feature has no webhook, queue, scheduled job or third-party callback. Read notes mark lookups that `data-model` must index; persist notes mark every write.
+
+### Log in, with lockout (US-02, US-06 — AC-04, AC-05, AC-06, AC-13)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as user
+    participant UI as ui
+    participant S as service (Identity)
+    participant D as data-store
+
+    Note over U,UI: Precondition: a Visitor on the log-in form
+    U->>UI: enters email address and password
+    UI->>S: log in with email and password
+    S->>S: trim and normalise the email address
+    S->>D: look up Account by normalised email
+    Note over S,D: reads Account by normalised email (unique lookup)
+    alt no Account holds this email
+        D-->>S: none
+        S->>S: verify the password against a fixed dummy hash, so timing matches
+        S-->>UI: email or password is incorrect
+        UI-->>U: shows the shared message, stays on the form
+    else Account is locked and the 15 minutes have not passed
+        D-->>S: Account with lockout end in the future
+        S-->>UI: login temporarily blocked, try again after the lockout end
+        UI-->>U: shows the block message and when to retry
+        Note over S,D: no write - attempts during the block neither count nor extend it
+    else password is wrong
+        D-->>S: Account
+        S->>S: verify password, it does not match
+        alt this is the 5th failure in a row
+            S->>D: set lockout end to now plus 15 minutes and reset the failure count to zero
+            Note over S,D: persists Account lockout end and failure count
+            S-->>UI: login temporarily blocked, try again after the lockout end
+            UI-->>U: shows the block message and when to retry
+        else fewer than 5 failures in a row
+            S->>D: increase the failure count by one
+            Note over S,D: persists Account failure count
+            S-->>UI: email or password is incorrect
+            UI-->>U: shows the shared message, stays on the form
+        end
+    else password is correct
+        D-->>S: Account with role and security stamp
+        S->>S: verify password, it matches
+        S->>D: reset the failure count to zero
+        Note over S,D: persists Account failure count
+        S-->>UI: session for this browser carrying account id, username, role and stamp
+        UI-->>U: shows own Profile, with the Administrator role if the Account has it
+    end
+    Note over U,S: Postcondition: logged in on this browser as Player or Administrator, or still a Visitor
+```
+
+### Log out (US-03 — AC-07)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as user
+    participant UI as ui
+    participant S as service (Identity)
+
+    Note over U,UI: Precondition: a logged-in Player
+    U->>UI: chooses log out
+    UI->>S: log out with this browser's session
+    S->>S: end the session held by this browser only
+    S-->>UI: logged out, session removed from this browser
+    UI->>UI: forget the cached own identity
+    UI-->>U: shows the portal as a Visitor sees it
+    U->>UI: goes back to the Profile page
+    UI->>S: own profile without a session
+    S-->>UI: not logged in
+    UI-->>U: asks to log in or register
+    Note over S: no data-store write - the security stamp is not rotated
+    Note over U,S: Postcondition: this browser is a Visitor, other devices of the same Account stay logged in
+```
+
+### See my own Profile (US-04, US-06 — AC-09, AC-10, AC-13)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as user
+    participant UI as ui
+    participant S as service (Identity)
+    participant D as data-store
+
+    Note over U,UI: Precondition: someone opens the own-Profile page
+    U->>UI: opens own Profile
+    UI->>S: own profile with this browser's session, if any
+    S->>S: resolve who is acting (see Cross-cutting - who is acting)
+    alt nobody - a Visitor, logged out or expired
+        S-->>UI: not logged in, no profile details
+        UI-->>U: asks to log in or register first
+    else a logged-in Player
+        S->>D: read Account by account id
+        Note over S,D: reads Account by primary key
+        D-->>S: username, email, join date, role
+        S-->>UI: username, email address, join date and role
+        UI-->>U: shows own Profile, role shown as Player or Administrator
+    end
+    Note over U,S: Postcondition: nothing changed, the email was shown only to its owner
+```
+
+### Look up another Player's Profile (US-05 — AC-10, AC-11, AC-12)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as user
+    participant UI as ui
+    participant S as service (Identity)
+    participant D as data-store
+
+    Note over U,UI: Precondition: someone has a Username to look up
+    U->>UI: opens the Profile of a username, for example scissors
+    UI->>S: public profile by username with this browser's session, if any
+    S->>S: resolve who is acting (see Cross-cutting - who is acting)
+    alt nobody - a Visitor, logged out or expired
+        S-->>UI: not logged in, no profile details
+        UI-->>U: asks to log in or register first
+    else a logged-in Player
+        S->>S: trim and normalise the username
+        S->>D: look up Account by normalised username, exact match only
+        Note over S,D: reads Account by normalised username (unique lookup, no partial match)
+        alt no Account holds this username
+            D-->>S: none
+            S-->>UI: no player with that username
+            UI-->>U: says no player with that username exists
+        else found
+            D-->>S: username as the owner typed it, join date, role
+            S-->>UI: username, join date and role - the response has no email field
+            UI-->>U: shows the public Profile
+        end
+    end
+    Note over U,S: Postcondition: nothing changed, no email of another Player left the service
+```
+
+### Operator grants or removes the administrator role (US-06 — AC-13, AC-13b)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor O as operator
+    participant C as client (operator command on the host)
+    participant S as service (Identity)
+    participant D as data-store
+
+    Note over O,C: Precondition: the operator has shell access to the host, the portal UI and API are not involved
+    O->>C: runs grant-admin or revoke-admin with a username
+    C->>S: change role of this username to administrator or player
+    S->>D: look up Account by normalised username
+    Note over S,D: reads Account by normalised username (unique lookup)
+    alt no Account holds this username
+        D-->>S: none
+        S-->>C: no such account, nothing changed
+        C-->>O: reports the error and exits with a failure code
+    else the Account already has the requested role
+        D-->>S: Account with that role
+        S-->>C: role unchanged, sessions kept
+        C-->>O: reports nothing to do and exits
+    else role differs
+        D-->>S: Account
+        S->>D: set the new role and rotate the security stamp in one write
+        Note over S,D: persists Account role and security stamp
+        D-->>S: ok
+        S->>S: log role changed, keyed by account id
+        S-->>C: role changed, all sessions of this Account ended
+        C-->>O: reports success and exits without serving the portal
+    end
+    Note over S,D: Postcondition: every device of this Account resolves as nobody on its next request or hub call (Critical flow 2), and the next log-in carries the new role (Log in flow)
+```
+
+### Self-escalation attempt through the portal (US-06 — AC-14)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as user
+    participant UI as ui
+    participant S as service (Identity)
+    participant D as data-store
+
+    Note over U,UI: Precondition: a Visitor registering, or a logged-in Player, crafts a request that names a role
+    U->>UI: sends a registration or any other request carrying a role value
+    UI->>S: request with an extra role field
+    S->>S: bind only the known fields - no portal request type has a role field
+    alt registration
+        S->>D: insert Account with role player, as in Critical flow 1
+        Note over S,D: persists Account with role player regardless of the request
+        S-->>UI: registered as a Player
+    else any other portal request
+        S-->>UI: normal answer for that request, the role field is ignored
+    end
+    UI-->>U: the role shown is the one the Account already had
+    Note over S,D: Postcondition: no Account's role changed - only the operator command reaches the change-role step
+```
+
+### Cross-cutting: who is acting on each request (AC-08, AC-10, AC-13b)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant UI as ui
+    participant M as service (Play, Chat or Admin)
+    participant S as service (Identity)
+    participant D as data-store
+
+    Note over UI,S: Precondition: any request or real-time connection reaches the portal
+    UI->>M: request or opens a real-time connection, with this browser's session if any
+    M->>S: who is behind the current request
+    alt no session on this browser
+        S-->>M: nobody
+    else session older than 7 days since its last renewal
+        S-->>M: nobody, the session has expired
+    else session present and not expired
+        S->>D: read Account by account id and compare the security stamp
+        Note over S,D: reads Account by primary key, once per request or hub call
+        alt Account gone or stamp changed - role changed by the operator
+            D-->>S: stamp does not match
+            S-->>M: nobody, the session is revoked
+            S-->>UI: remove the stale session from this browser
+        else stamp matches
+            D-->>S: username, role, stamp
+            S-->>M: account id, username and role
+            S-->>UI: renew the session for another 7 days from now
+            Note over UI,S: this request counts as activity, so the idle logout lands 7 days after the last one
+        end
+    end
+    alt answer is nobody and the area needs a logged-in Player
+        M-->>UI: not logged in
+    else answer is an account identity
+        M-->>UI: the area's normal answer for that Player
+    end
+    Note over UI,S: Postcondition: the area knows the acting Player or nobody, and never read a cookie, claim or identity table itself
+```
+
+**Flags for design (not decided here):**
+- The operator command (`client (operator command on the host)`) and the consuming module (`service (Play, Chat or Admin)`) are participants §5 names in prose but not as C4 containers; §5 treats them as part of the `Rochambeau.Api` container. No change to §5 is proposed.
+- Granting a role the Account already has is drawn as a no-op that keeps sessions alive. AC-13b only speaks about a grant or removal that changes the role; if «re-run grant-admin to force a logout everywhere» is wanted, it is a design change.
+- The lockout answer on the 5th consecutive failure itself is drawn as «temporarily blocked», which is what Identity returns. AC-06 only requires the block from the next attempt on, so this is stricter, not contrary.
+
 ## 7. Deployment view
 
 <!-- 🎯 Why: the TOPOLOGY DevOps must know without reading the deploy charts — how many replicas,
