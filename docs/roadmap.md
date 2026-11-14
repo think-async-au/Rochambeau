@@ -29,6 +29,11 @@ Players on the web can play real-time rock-paper-scissors against a chosen or ra
 | 8 | Forum → see [Not yet specified](#not-yet-specified) | `idea-brief.md` · 1. Raw idea | fog | idea |
 | 9 | Fuller admin section → see [Not yet specified](#not-yet-specified) | `idea-brief.md` · 3. Users | fog | idea |
 | 10 | Desktop and mobile clients → see [Not yet specified](#not-yet-specified) | `idea-brief.md` · 5. Out of scope | fog | idea |
+| 11 | Game styles — players negotiate a style before a match (propose / accept / counter), and styles beyond the classic three exist (e.g. the 7-gesture set) → see [Not yet specified](#not-yet-specified) | `target-architecture.md` · Product scope | fog | idea |
+| 12 | Lobby — players online with rating, a Top-100 leaderboard, global lobby chat | `target-architecture.md` · Product scope | M | idea |
+| 13 | Two-factor login (2FA) for accounts | `target-architecture.md` · Target services (Auth service) | S | idea |
+| 14 | Analytics and monitoring — track game and forum actions, metrics dashboards → see [Not yet specified](#not-yet-specified) | `target-architecture.md` · Product scope, Scaling mechanisms | fog | idea |
+| 15 | Scale milestone — load-test the monolith against the target assumptions, then adopt scaling mechanisms one ADR at a time → see [Not yet specified](#not-yet-specified) | `target-architecture.md` · Load assumptions; ADR-0004 | fog | idea |
 
 ## Not yet specified
 
@@ -38,6 +43,9 @@ Players on the web can play real-time rock-paper-scissors against a chosen or ra
 | Forum | Build in-house or integrate an existing forum; what ties it to accounts | 8 | Owner decision D2, then a short recon of integration options if "integrate" |
 | Fuller admin section | What administrators manage beyond banning (content, competitions, forum, reports) | 9 | Grilling session with the owner after moderation and competitions exist |
 | Desktop and mobile clients | Which platforms, native vs wrapped web, what the server API must expose for them | 10 | Recon pass after the web client is complete |
+| Game styles | Which styles exist and their beat rules, the negotiation rules (rounds, timeout, who proposes first), and whether the move timer belongs here or in step 3 | 11 | Owner decision D1, then `/sdd:specify` after step 3 ships |
+| Analytics and monitoring | Which events are tracked, where analytics data lives, which metrics alert | 14 | Grilling session after core play; any separate store needs an ADR (ADR-0004) |
+| Scale milestone | Which load profile to test (target says ~10k writes/s), which bottleneck appears first, which mechanism (replicas, partitions, cache, queue, service extraction) fixes it | 15 | Load test first, then one ADR per mechanism (ADR-0004) |
 
 ## Out of scope
 
@@ -48,7 +56,7 @@ Players on the web can play real-time rock-paper-scissors against a chosen or ra
 
 | # | Question | Type | Owner | Blocks |
 |---|---|:---:|:---:|:---:|
-| D1 | Match format: single throw, best-of-N, or a variant such as RPS-Lizard-Spock? | grilling | human | 3 |
+| D1 | Match format: single throw, best-of-N, or a variant? The target architecture adds negotiated game styles (incl. a 7-gesture set) and a move timer, so: does step 3 ship classic-only with a timer, leaving styles to step 11? | grilling | human | 3, 11 |
 | D2 | Forum: build it in-house or integrate an existing one? | grilling | human | 8 |
 | D3 | How do tournaments differ from leagues? | grilling | human | 7 |
 | D4 | What does the admin section manage beyond moderation? | grilling | human | 9 |
@@ -62,6 +70,7 @@ Players on the web can play real-time rock-paper-scissors against a chosen or ra
 - Stack: .NET 10 + React/TypeScript + PostgreSQL + SignalR → [ADR-0001](adr/0001-use-dotnet-react-postgres-signalr-stack.md)
 - Modular monolith with feature folders → [ADR-0002](adr/0002-use-modular-monolith-with-feature-folders.md)
 - One EF Core `DbContext`, one schema per module → [ADR-0003](adr/0003-use-ef-core-single-dbcontext-schema-per-module.md)
+- The owner's high-load service design is the destination; the monolith evolves toward it by measured extraction, one ADR per mechanism → [ADR-0004](adr/0004-evolve-monolith-toward-target-service-architecture.md), [target-architecture.md](target-architecture.md)
 
 ## Dependency graph
 
@@ -76,6 +85,13 @@ flowchart LR
   s2 -->|posts belong to accounts| s8["8 · Forum (fog)"]
   s6 -->|extends the admin module| s9["9 · Fuller admin (fog)"]
   s3 -->|clients consume the play API| s10["10 · Desktop & mobile (fog)"]
+  s3 -->|styles configure the match engine| s11["11 · Game styles (fog)"]
+  s3 -->|rating comes from match results| s12["12 · Lobby: online, rating, Top-100"]
+  s5 -->|lobby chat extends chat| s12
+  s2 -->|2FA extends login| s13["13 · 2FA"]
+  s3 -->|tracks game actions| s14["14 · Analytics & monitoring (fog)"]
+  s4 -->|load needs the full play loop| s15["15 · Scale milestone (fog)"]
+  s14 -->|measurements drive scaling ADRs| s15
 ```
 
 ## Execution path
