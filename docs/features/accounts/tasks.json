@@ -187,7 +187,7 @@
         "tests/Rochambeau.IntegrationTests/Identity/"
       ],
       "file": "docs/features/accounts/tasks/t09-login-endpoint-lockout.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T10",

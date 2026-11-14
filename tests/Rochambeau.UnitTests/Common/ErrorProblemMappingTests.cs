@@ -84,6 +84,21 @@ public class ErrorProblemMappingTests
     }
 
     [Fact]
+    public void Error_extensions_are_copied_to_the_problem()
+    {
+        var end = new DateTime(2026, 11, 14, 10, 15, 0, DateTimeKind.Utc);
+        var error = Error.Locked("identity.locked_out", "Blocked.") with
+        {
+            Extensions = new Dictionary<string, object?> { ["lockoutEnd"] = end },
+        };
+
+        var problem = AsProblem(error.ToProblem());
+
+        Assert.Equal(end, problem.ProblemDetails.Extensions["lockoutEnd"]);
+        Assert.Equal("identity.locked_out", problem.ProblemDetails.Extensions["errorCode"]);
+    }
+
+    [Fact]
     public void Result_carries_value_or_error()
     {
         var ok = Result.Success(42);

@@ -20,6 +20,11 @@ public static class ErrorResults
         problem.Status = status;
         problem.Type = type;
         problem.Title = error.Message;
+        foreach (var (key, value) in error.Extensions ?? new Dictionary<string, object?>())
+        {
+            problem.Extensions[key] = value;
+        }
+
         problem.Extensions[ErrorCodeExtension] = error.Code;
 
         return TypedResults.Problem(problem);

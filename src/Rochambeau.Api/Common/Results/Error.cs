@@ -25,6 +25,9 @@ public sealed record Error(string Code, string Message, ErrorType Type)
     /// <summary>Field name → what that field must be. Set only for field-level validation failures.</summary>
     public IReadOnlyDictionary<string, string[]>? FieldErrors { get; init; }
 
+    /// <summary>Extra machine-readable members for the problem body (e.g. <c>lockoutEnd</c>).</summary>
+    public IReadOnlyDictionary<string, object?>? Extensions { get; init; }
+
     public static Error Validation(string code, string message, IReadOnlyDictionary<string, string[]> fieldErrors) =>
         new(code, message, ErrorType.Validation) { FieldErrors = fieldErrors };
 
