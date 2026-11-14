@@ -42,6 +42,17 @@ describe('useMe', () => {
     expect(fetchMock.mock.calls[0][0]).toBe('/api/v1/me')
   })
 
+  it('uses the identity cached by setMe without another /me round trip', async () => {
+    const { queryClient, wrapper } = setup()
+    setMe(queryClient, rocky)
+
+    const { result } = renderHook(() => useMe(), { wrapper })
+
+    expect(result.current.data).toEqual(rocky)
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
   it('resolves to null for a Visitor (401), not to an error', async () => {
     fetchMock.mockResolvedValue(
       new Response(

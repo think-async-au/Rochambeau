@@ -33,7 +33,7 @@
 | T23 | [Give request-binding failures a ProblemDetails errorCode](./t23-binding-failure-error-code.md) | ports | a.udalov | S | T22 | done | COMMIT |
 | T24 | [Apply the client-header check to negotiate with a trailing slash](./t24-negotiate-trailing-slash.md) | ports | a.udalov | XS | — | done | COMMIT |
 | T25 | [Make the module-boundary architecture test see method-body references](./t25-architecture-test-il-scan.md) | tests | a.udalov | S | — | done | COMMIT |
-| T26 | [Treat any 401 from an authenticated query as logged out, and keep me fresh briefly](./t26-web-401-clears-me.md) | ui | a.udalov | S | T18 | todo | — |
+| T26 | [Treat any 401 from an authenticated query as logged out, and keep me fresh briefly](./t26-web-401-clears-me.md) | ui | a.udalov | S | T18 | done | COMMIT |
 | T27 | [Keep the Player view and show an error when log-out fails](./t27-web-logout-failure.md) | ui | a.udalov | XS | T26 | todo | — |
 | T28 | [Offer Register and Log-in links on the landing page](./t28-web-landing-links.md) | ui | a.udalov | XS | T27 | todo | — |
 | T29 | [Move focus to the first invalid field after a failed submit](./t29-web-field-error-focus.md) | ui | a.udalov | XS | T28 | todo | — |

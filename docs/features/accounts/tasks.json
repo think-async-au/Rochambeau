@@ -528,7 +528,7 @@
         "web/src/features/profile/ProfilePages.test.tsx"
       ],
       "file": "docs/features/accounts/tasks/t26-web-401-clears-me.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T27",

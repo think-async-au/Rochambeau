@@ -98,6 +98,24 @@ describe('PublicProfilePage', () => {
     expect(await screen.findByText('No player with that username exists.')).toBeInTheDocument()
   })
 
+  it('asks to log in again when the session ended while the page was open (AC-08, AC-13b)', async () => {
+    mockFetch((url) =>
+      url === '/api/v1/me'
+        ? Response.json(rocky)
+        : problem(401, {
+            title: 'Log in or register first.',
+            errorCode: 'identity.not_authenticated',
+          }),
+    )
+    renderApp('/players/scissors')
+
+    expect(
+      await screen.findByRole('heading', { name: 'Log in or register first.' }),
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/Could not load this profile/)).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Log in' })).toHaveAttribute('href', '/login')
+  })
+
   it('asks a Visitor to log in or register first and fetches no profile (AC-10)', async () => {
     const fetchMock = mockFetch(() =>
       problem(401, { title: 'Log in or register first.', errorCode: 'identity.not_authenticated' }),

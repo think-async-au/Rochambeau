@@ -9,8 +9,8 @@ files_hint: ["web/src/main.tsx", "web/src/shared/api/", "web/src/features/profil
 owner: "a.udalov"
 estimate: "S"
 origin: "review-2026-11-14 F3, F13"
-status: "todo"
-step: "—"
+status: "done"
+step: "COMMIT"
 ---
 
 <!-- Follow-up task added by implement from the review record. The finding is quoted from

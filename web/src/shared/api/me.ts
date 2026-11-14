@@ -17,9 +17,15 @@ async function fetchMe(): Promise<OwnProfile | null> {
   }
 }
 
+/**
+ * How long a known identity is trusted without asking `/me` again. Short, and safe: any 401 from
+ * another query drops it at once (see `createQueryClient`).
+ */
+export const ME_STALE_TIME_MS = 30_000
+
 /** The logged-in Player's own Profile, or `null` for a Visitor. Server errors stay errors. */
 export function useMe() {
-  return useQuery({ queryKey: meQueryKey, queryFn: fetchMe })
+  return useQuery({ queryKey: meQueryKey, queryFn: fetchMe, staleTime: ME_STALE_TIME_MS })
 }
 
 /** Caches the identity returned by register or log in, so no extra `/me` round trip is needed. */

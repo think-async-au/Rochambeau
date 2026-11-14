@@ -1,11 +1,12 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { render } from '@testing-library/react'
 import { createElement, type ReactElement } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router'
+import { createQueryClient } from '../shared/api/queryClient.ts'
 
-/** Renders routes inside a fresh QueryClient (no retries) and a MemoryRouter at `route`. */
+/** Renders routes inside the app's QueryClient (no retries) and a MemoryRouter at `route`. */
 export function renderRoutes(routes: Record<string, ReactElement>, route: string) {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const queryClient = createQueryClient({ defaultOptions: { queries: { retry: false } } })
   const view = render(
     createElement(
       QueryClientProvider,
