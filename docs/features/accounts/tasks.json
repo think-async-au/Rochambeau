@@ -18,7 +18,7 @@
         "tests/Rochambeau.IntegrationTests/Host/"
       ],
       "file": "docs/features/accounts/tasks/t01-common-results-problemdetails-client-header.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T2",

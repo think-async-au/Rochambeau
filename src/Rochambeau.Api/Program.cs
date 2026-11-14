@@ -1,3 +1,4 @@
+using Rochambeau.Api.Common.Http;
 using Rochambeau.Api.Common.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +15,7 @@ var app = builder.Build();
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
+app.UseClientHeaderCheck();
 
 if (app.Environment.IsDevelopment())
 {

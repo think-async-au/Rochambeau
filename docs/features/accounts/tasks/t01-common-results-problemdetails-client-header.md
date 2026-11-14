@@ -9,8 +9,8 @@ files_hint: ["src/Rochambeau.Api/Common/Results/", "src/Rochambeau.Api/Common/Ht
 owner: "a.udalov"
 estimate: "M"
 context_budget: "S"   # measured: 39 inlined lines
-status: "todo"
-step: ""
+status: "done"
+step: "COMMIT"
 ---
 
 <!-- Self-contained task: the slice this task needs is inlined below, each chunk with a provenance
