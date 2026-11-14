@@ -38,7 +38,7 @@ public class AccountClaimsTests
     [Fact]
     public void No_http_context_is_nobody()
     {
-        Assert.Null(new CurrentAccount(new HttpContextAccessor(), _options).Current);
+        Assert.Null(new CurrentAccount(new HubCallerPrincipal(), new HttpContextAccessor(), _options).Current);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public class AccountClaimsTests
     }
 
     private static CurrentAccount CurrentFor(ClaimsPrincipal principal) =>
-        new(new HttpContextAccessor { HttpContext = new DefaultHttpContext { User = principal } }, _options);
+        new(new HubCallerPrincipal(), new HttpContextAccessor { HttpContext = new DefaultHttpContext { User = principal } }, _options);
 
     private static Account NewAccount(AccountRole role) => new()
     {

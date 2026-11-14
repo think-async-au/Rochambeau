@@ -1,5 +1,7 @@
 using System.Net;
+using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
+using Rochambeau.Api.Modules.Identity.Contracts;
 using Rochambeau.IntegrationTests.Infrastructure;
 
 namespace Rochambeau.IntegrationTests.Identity;
@@ -22,6 +24,27 @@ public sealed class HubSessionRevalidationTests(PostgresFixture postgres)
         await connection.StartAsync();
 
         Assert.Equal("rock", await connection.InvokeAsync<string>("Echo", "rock"));
+    }
+
+    [Theory]
+    [InlineData(HttpTransportType.WebSockets)]
+    [InlineData(HttpTransportType.LongPolling)]
+    public async Task AC08_a_hub_invocation_sees_the_logged_in_player_as_the_current_account(HttpTransportType transport)
+    {
+        await using var factory = new ApiFactory(postgres);
+        await using var host = factory.WithTestHub();
+        var (username, cookie) = await RegisterAsync(host);
+        await using var connection = host.CreateHubConnection(cookie, transport);
+        await connection.StartAsync();
+
+        var first = await connection.InvokeAsync<AccountIdentity?>("WhoAmI");
+        var second = await connection.InvokeAsync<AccountIdentity?>("WhoAmI");
+
+        Assert.NotNull(first);
+        Assert.Equal(username, first.Username);
+        Assert.Equal(AccountRole.Player, first.Role);
+        Assert.NotEqual(Guid.Empty, first.AccountId);
+        Assert.Equal(first, second);
     }
 
     [Fact]

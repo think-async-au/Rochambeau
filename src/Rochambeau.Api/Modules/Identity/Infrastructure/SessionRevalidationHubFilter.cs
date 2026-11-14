@@ -29,6 +29,8 @@ public sealed partial class SessionRevalidationHubFilter(
             throw new HubException("The session has ended. Log in again.");
         }
 
+        // ICurrentAccount inside the hub method reads the caller, not a possibly-ended HTTP request.
+        invocationContext.ServiceProvider.GetRequiredService<HubCallerPrincipal>().User = invocationContext.Context.User;
         return await next(invocationContext).ConfigureAwait(false);
     }
 
@@ -43,6 +45,7 @@ public sealed partial class SessionRevalidationHubFilter(
             return;
         }
 
+        context.ServiceProvider.GetRequiredService<HubCallerPrincipal>().User = context.Context.User;
         await next(context).ConfigureAwait(false);
     }
 

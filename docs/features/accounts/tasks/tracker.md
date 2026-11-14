@@ -26,7 +26,7 @@
 | T16 | [Build the Register screen with field-level errors](./t16-web-register-screen.md) | ui | a.udalov | M | T15 | done | COMMIT |
 | T17 | [Build the Log-in screen, the log-out action and the logged-in route guard](./t17-web-login-logout-route-guard.md) | ui | a.udalov | M | T16 | done | COMMIT |
 | T18 | [Build the own Profile and public Profile screens](./t18-web-profile-screens.md) | ui | a.udalov | M | T17 | done | COMMIT |
-| T19 | [Resolve ICurrentAccount from the hub caller inside hub invocations](./t19-hub-scoped-current-account.md) | infra | a.udalov | S | T13 | todo | — |
+| T19 | [Resolve ICurrentAccount from the hub caller inside hub invocations](./t19-hub-scoped-current-account.md) | infra | a.udalov | S | T13 | done | COMMIT |
 | T20 | [Reject hub invocations once the session ticket has expired](./t20-hub-ticket-expiry.md) | infra | a.udalov | S | T19 | todo | — |
 | T21 | [Add the mandatory login and registration-cap edge-case tests](./t21-login-and-cap-edge-tests.md) | tests | a.udalov | S | — | todo | — |
 | T22 | [Make the lockout check and failure count atomic under concurrent log-ins](./t22-atomic-lockout.md) | app | a.udalov | M | T21 | todo | — |

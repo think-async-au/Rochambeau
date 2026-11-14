@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Rochambeau.Api.Modules.Identity.Contracts;
 
 namespace Rochambeau.IntegrationTests.Infrastructure;
 
@@ -26,13 +27,17 @@ internal static class TestHubHost
     /// WebSockets, not long polling: a poll is a fresh HTTP request the cookie middleware would revalidate
     /// on its own, whereas one long-lived socket is exactly what only the hub filter can guard.
     /// </summary>
-    public static HubConnection CreateHubConnection(this WebApplicationFactory<Program> factory, string? cookie)
+    public static HubConnection CreateHubConnection(this WebApplicationFactory<Program> factory, string? cookie) =>
+        factory.CreateHubConnection(cookie, HttpTransportType.WebSockets);
+
+    /// <summary>A SignalR client over the TestServer on the given transport, sending the cookie and the client header.</summary>
+    public static HubConnection CreateHubConnection(this WebApplicationFactory<Program> factory, string? cookie, HttpTransportType transport)
     {
         var server = factory.Server;
         return new HubConnectionBuilder()
             .WithUrl(new Uri(server.BaseAddress, HubPath), options =>
             {
-                options.Transports = HttpTransportType.WebSockets;
+                options.Transports = transport;
                 options.WebSocketFactory = async (context, cancellationToken) =>
                 {
                     var client = server.CreateWebSocketClient();
@@ -74,8 +79,11 @@ internal static class TestHubHost
 }
 
 /// <summary>Test-only hub; invoking <see cref="Echo"/> is «a hub call, for example a move» (SAD §6 critical flow 2).</summary>
-internal sealed class TestHub : Hub
+internal sealed class TestHub(ICurrentAccount currentAccount) : Hub
 {
+    /// <summary>What a Play or Chat hub method would see as «who is acting» (AC-08).</summary>
+    public AccountIdentity? WhoAmI() => currentAccount.Current;
+
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "SignalR hub methods must be instance methods.")]
     public string Echo(string value) => value;
 }

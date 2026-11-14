@@ -54,6 +54,7 @@ public static class IdentityModule
         services.Configure<HubOptions>(hub => hub.AddFilter<SessionRevalidationHubFilter>());
 
         services.AddHttpContextAccessor();
+        services.AddScoped<HubCallerPrincipal>();
         services.AddScoped<ICurrentAccount, CurrentAccount>();
         services.AddScoped<IAccountDirectory, AccountDirectory>();
         services.AddSingleton<RegistrationCap>();

@@ -402,7 +402,7 @@
         "tests/Rochambeau.IntegrationTests/Identity/HubSessionRevalidationTests.cs"
       ],
       "file": "docs/features/accounts/tasks/t19-hub-scoped-current-account.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T20",
