@@ -587,7 +587,7 @@
         "web/src/features/auth/LoginPage.test.tsx"
       ],
       "file": "docs/features/accounts/tasks/t29-web-field-error-focus.md",
-      "status": "todo"
+      "status": "done"
     }
   ]
 }

@@ -96,6 +96,7 @@ describe('LoginPage', () => {
     expect(screen.getByLabelText('Password')).toHaveAccessibleDescription(
       'The password is required.',
     )
+    expect(screen.getByLabelText('Password')).toHaveFocus()
   })
 })
 

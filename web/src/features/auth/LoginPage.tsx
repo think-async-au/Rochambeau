@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { ApiError, apiFetch } from '../../shared/api/client.ts'
 import { setMe } from '../../shared/api/me.ts'
@@ -7,6 +7,7 @@ import type { FieldErrors, OwnProfile } from '../../shared/api/types.ts'
 import { Button } from '../../shared/ui/Button.tsx'
 import { FormError } from '../../shared/ui/FormError.tsx'
 import { TextField } from '../../shared/ui/TextField.tsx'
+import { useFocusFirstInvalid } from '../../shared/ui/useFocusFirstInvalid.ts'
 import { formatRetryTime } from './lockout.ts'
 
 interface Credentials {
@@ -21,6 +22,8 @@ export function LoginPage() {
   const [form, setForm] = useState<Credentials>({ email: '', password: '' })
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [formError, setFormError] = useState<string>()
+  const formRef = useRef<HTMLFormElement>(null)
+  useFocusFirstInvalid(formRef, fieldErrors)
 
   const logIn = useMutation({
     mutationFn: (credentials: Credentials) =>
@@ -67,7 +70,7 @@ export function LoginPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 p-6">
       <h1 className="text-3xl font-bold">Log in</h1>
-      <form noValidate onSubmit={submit} className="flex flex-col gap-4">
+      <form ref={formRef} noValidate onSubmit={submit} className="flex flex-col gap-4">
         <FormError message={formError} />
         <TextField label="Email" type="email" autoComplete="email" {...field('email')} />
         <TextField

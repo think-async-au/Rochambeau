@@ -81,6 +81,23 @@ describe('RegisterPage', () => {
     expect(screen.getByLabelText('Email')).toHaveValue('user-1@example.test')
     expect(password).toHaveValue('')
     expect(username).toHaveAttribute('aria-invalid', 'true')
+    // The first invalid field takes focus, so a screen reader announces it and its error.
+    expect(username).toHaveFocus()
+  })
+
+  it('moves focus to the field a conflict belongs to (AC-03)', async () => {
+    mockFetch(() =>
+      problem(409, {
+        title: 'This email address cannot be used.',
+        errorCode: 'identity.email_unavailable',
+      }),
+    )
+    renderRegister()
+
+    await fillAndSubmit('Rocky', 'user-1@example.test', 'long-enough-1')
+
+    expect(await screen.findByText('This email address cannot be used.')).toBeInTheDocument()
+    expect(screen.getByLabelText('Email')).toHaveFocus()
   })
 
   it.each([

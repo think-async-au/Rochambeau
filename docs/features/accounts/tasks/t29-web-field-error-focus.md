@@ -9,8 +9,8 @@ files_hint: ["web/src/features/auth/RegisterPage.tsx", "web/src/features/auth/Lo
 owner: "a.udalov"
 estimate: "XS"
 origin: "review-2026-11-14 F14"
-status: "todo"
-step: "—"
+status: "done"
+step: "COMMIT"
 ---
 
 <!-- Follow-up task added by implement from the review record. The finding is quoted from
