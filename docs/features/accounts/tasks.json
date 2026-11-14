@@ -81,7 +81,7 @@
         "tests/Rochambeau.IntegrationTests/Identity/"
       ],
       "file": "docs/features/accounts/tasks/t04-identity-core-cookie-session-wiring.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T5",

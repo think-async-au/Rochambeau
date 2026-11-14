@@ -11,7 +11,7 @@
 | T1 | [Add Result/Error, the ProblemDetails mapping and the client-header filter to Common](./t01-common-results-problemdetails-client-header.md) | ports | a.udalov | M | — | done | COMMIT |
 | T2 | [Encode the Identity domain rules: username, email, password, role, lockout and cap policy](./t02-identity-domain-rules.md) | domain | a.udalov | S | — | done | COMMIT |
 | T3 | [Map the Account entity to identity.accounts and promote the staged migration](./t03-account-entity-and-migration.md) | migration | a.udalov | M | T2 | done | COMMIT |
-| T4 | [Wire Identity core, the cookie session and deny-by-default authorization in IdentityModule](./t04-identity-core-cookie-session-wiring.md) | wiring | a.udalov | M | T1, T3 | todo | — |
+| T4 | [Wire Identity core, the cookie session and deny-by-default authorization in IdentityModule](./t04-identity-core-cookie-session-wiring.md) | wiring | a.udalov | M | T1, T3 | done | COMMIT |
 | T5 | [Expose ICurrentAccount and IAccountDirectory through Identity Contracts](./t05-identity-contracts-current-account.md) | infra | a.udalov | M | T4 | todo | — |
 | T6 | [Implement the in-process RegistrationCap sliding window](./t06-registration-cap.md) | app | a.udalov | S | T2 | todo | — |
 | T7 | [Register an Account through POST /api/v1/accounts](./t07-register-endpoint.md) | ports | a.udalov | M | T5 | todo | — |

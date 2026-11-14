@@ -16,3 +16,6 @@ web/dist/
 # Local secrets / env
 .env
 *.local.json
+
+# Data Protection key ring (local development)
+src/Rochambeau.Api/App_Data/

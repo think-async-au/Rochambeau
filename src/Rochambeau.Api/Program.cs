@@ -1,5 +1,6 @@
 using Rochambeau.Api.Common.Http;
 using Rochambeau.Api.Common.Persistence;
+using Rochambeau.Api.Modules.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,23 +10,25 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSignalR();
 builder.Services.AddPersistence(builder.Configuration);
 
-// Modules: builder.Services.Add<Name>Module(builder.Configuration);
+builder.Services.AddIdentityModule(builder.Configuration);
 
 var app = builder.Build();
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 app.UseClientHeaderCheck();
+app.UseAuthentication();
+app.UseAuthorization();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.MapOpenApi().AllowAnonymous();
     await app.ApplyMigrationsAsync().ConfigureAwait(false);
 }
 
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/health").AllowAnonymous();
 
-// Modules: app.Map<Name>Module();
+app.MapIdentityModule();
 
 await app.RunAsync().ConfigureAwait(false);
 
