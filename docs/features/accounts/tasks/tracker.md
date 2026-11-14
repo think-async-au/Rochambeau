@@ -14,7 +14,7 @@
 | T4 | [Wire Identity core, the cookie session and deny-by-default authorization in IdentityModule](./t04-identity-core-cookie-session-wiring.md) | wiring | a.udalov | M | T1, T3 | done | COMMIT |
 | T5 | [Expose ICurrentAccount and IAccountDirectory through Identity Contracts](./t05-identity-contracts-current-account.md) | infra | a.udalov | M | T4 | done | COMMIT |
 | T6 | [Implement the in-process RegistrationCap sliding window](./t06-registration-cap.md) | app | a.udalov | S | T2 | done | COMMIT |
-| T7 | [Register an Account through POST /api/v1/accounts](./t07-register-endpoint.md) | ports | a.udalov | M | T5 | todo | — |
+| T7 | [Register an Account through POST /api/v1/accounts](./t07-register-endpoint.md) | ports | a.udalov | M | T5 | done | COMMIT |
 | T8 | [Enforce the registration cap and prove the race guard on registration](./t08-registration-cap-and-race-guard.md) | app | a.udalov | M | T6, T7 | todo | — |
 | T9 | [Log in through POST /api/v1/session with lockout and enumeration-safe errors](./t09-login-endpoint-lockout.md) | ports | a.udalov | M | T7 | todo | — |
 | T10 | [Serve GET /api/v1/me and log out with DELETE /api/v1/session](./t10-own-profile-and-logout.md) | ports | a.udalov | M | T9 | todo | — |

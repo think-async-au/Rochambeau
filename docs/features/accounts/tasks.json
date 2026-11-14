@@ -143,7 +143,7 @@
         "tests/Rochambeau.IntegrationTests/Identity/"
       ],
       "file": "docs/features/accounts/tasks/t07-register-endpoint.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T8",
