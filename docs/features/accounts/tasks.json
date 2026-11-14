@@ -546,7 +546,7 @@
         "web/src/features/auth/RequireAuth.test.tsx"
       ],
       "file": "docs/features/accounts/tasks/t27-web-logout-failure.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T28",

@@ -102,6 +102,41 @@ describe('LogoutButton', () => {
     expect(queryClient.getQueryData(meQueryKey)).toBeNull()
   })
 
+  it('keeps the Player view and says so when the server could not log out', async () => {
+    mockFetch((url, init) =>
+      url === '/api/v1/session' && init?.method === 'DELETE'
+        ? new Response('boom', { status: 500 })
+        : Response.json(rocky),
+    )
+    const { queryClient } = renderGuarded()
+    expect(await screen.findByText('Secret profile')).toBeInTheDocument()
+
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Log out' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Could not log out. Please try again.',
+    )
+    expect(screen.getByText('Secret profile')).toBeInTheDocument()
+    expect(screen.queryByText('Visitor home')).not.toBeInTheDocument()
+    expect(queryClient.getQueryData(meQueryKey)).toEqual(rocky)
+    expect(screen.getByRole('button', { name: 'Log out' })).toBeEnabled()
+  })
+
+  it('treats a log-out answered with 401 as already logged out', async () => {
+    mockFetch((url, init) =>
+      url === '/api/v1/session' && init?.method === 'DELETE'
+        ? notAuthenticated()
+        : Response.json(rocky),
+    )
+    const { queryClient } = renderGuarded()
+    expect(await screen.findByText('Secret profile')).toBeInTheDocument()
+
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Log out' }))
+
+    expect(await screen.findByText('Visitor home')).toBeInTheDocument()
+    expect(queryClient.getQueryData(meQueryKey)).toBeNull()
+  })
+
   it('after logging out, going back to the guarded page asks to log in again', async () => {
     let loggedIn = true
     mockFetch((url, init) => {
