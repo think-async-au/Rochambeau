@@ -2,7 +2,7 @@
 
 Web-first rock-paper-scissors portal (real-time 1v1 play, chat, competitions, forum, admin) — a
 solo learning / portfolio project. Product intent: `docs/idea-brief.md`. Plan: `docs/roadmap.md`.
-Architecture: `docs/architecture-map.md` + ADRs in `docs/adr/` (0001 stack, 0002 modular monolith,
+Architecture: `docs/architecture-map.md` (what exists) + `docs/target-architecture.md` (high-load destination, ADR-0004) + ADRs in `docs/adr/` (0001 stack, 0002 modular monolith,
 0003 single DbContext / schema per module). Those documents win over this file if they disagree.
 
 ## Prerequisites

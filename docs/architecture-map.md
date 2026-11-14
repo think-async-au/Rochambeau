@@ -123,4 +123,4 @@ There is no frontend yet. This is the target baseline.
 
 ## Reconciliation with the authored architecture doc
 
-No authored architecture doc exists. This map is the current reference. The product intent comes from `docs/idea-brief.md`.
+The owner's course project «Rochambeau-Online» describes a **target** high-load service architecture. It is summarised in [`target-architecture.md`](target-architecture.md), including a table mapping target services to modules. This map stays the reference for what exists. The target is the destination, reached by measured extraction, one ADR per mechanism ([ADR-0004](adr/0004-evolve-monolith-toward-target-service-architecture.md)). Where the target conflicts with a convention here (broker, caches, one database per service, stored procedures), this map wins until an ADR changes it. Product intent comes from `docs/idea-brief.md`.
