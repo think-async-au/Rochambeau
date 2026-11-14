@@ -338,7 +338,7 @@
         "web/src/App.tsx"
       ],
       "file": "docs/features/accounts/tasks/t16-web-register-screen.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T17",

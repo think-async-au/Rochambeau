@@ -1,4 +1,5 @@
 import { Route, Routes } from 'react-router'
+import { RegisterPage } from './features/auth/RegisterPage.tsx'
 
 function Home() {
   return (
@@ -13,6 +14,7 @@ export function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/register" element={<RegisterPage />} />
     </Routes>
   )
 }

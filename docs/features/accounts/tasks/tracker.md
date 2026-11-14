@@ -23,7 +23,7 @@
 | T13 | [Revalidate the session on every hub invocation with SessionRevalidationHubFilter](./t13-session-revalidation-hub-filter.md) | infra | a.udalov | M | T12 | done | COMMIT |
 | T14 | [Measure the spec §6 latency targets for register, log in and view a profile](./t14-latency-nfr-tests.md) | tests | a.udalov | S | T8, T9, T11 | done | COMMIT |
 | T15 | [Add the shared API client and the «me» query to the SPA](./t15-web-api-client-and-me-query.md) | ui | a.udalov | S | — | done | COMMIT |
-| T16 | [Build the Register screen with field-level errors](./t16-web-register-screen.md) | ui | a.udalov | M | T15 | todo | — |
+| T16 | [Build the Register screen with field-level errors](./t16-web-register-screen.md) | ui | a.udalov | M | T15 | done | COMMIT |
 | T17 | [Build the Log-in screen, the log-out action and the logged-in route guard](./t17-web-login-logout-route-guard.md) | ui | a.udalov | M | T16 | todo | — |
 | T18 | [Build the own Profile and public Profile screens](./t18-web-profile-screens.md) | ui | a.udalov | M | T17 | todo | — |
 
