@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Rochambeau.Api.Common.Commands;
 using Rochambeau.Api.Common.Persistence;
 using Rochambeau.Api.Modules.Identity.Application;
@@ -48,6 +49,9 @@ public static class IdentityModule
             .AddClaimsPrincipalFactory<AccountClaimsPrincipalFactory>();
 
         services.AddSessionCookie();
+
+        // Every hub of every module revalidates the session on each call (AC-13b, accounts ADR-0004).
+        services.Configure<HubOptions>(hub => hub.AddFilter<SessionRevalidationHubFilter>());
 
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentAccount, CurrentAccount>();

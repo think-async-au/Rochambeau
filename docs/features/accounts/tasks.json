@@ -280,7 +280,7 @@
         "tests/Rochambeau.IntegrationTests/Identity/"
       ],
       "file": "docs/features/accounts/tasks/t13-session-revalidation-hub-filter.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T14",
