@@ -51,6 +51,8 @@ Implementation notes that follow from this choice:
 - One database read per hub invocation (every move, every chat message), on top of the per-request read for HTTP.
 - An extra layer (an interface and its implementation) compared with reading claims directly.
 
+- An open connection's 7-day idle deadline is its own. It is set when the connection opens (from the renewed cookie) and moves only on hub invocations, not on the Player's HTTP activity elsewhere. A connection that only receives pushes for 7 days is refused on its next call even if the Player stayed active over HTTP. Accepted in review (`_review/review-2026-11-14-2.md`, R2) in place of shared per-account activity state. The client side covers it: every SignalR hook in `web/src/shared/realtime/` builds its connection with `withAutomaticReconnect`, so the refusal reconnects with the still-valid cookie, and that renews both the cookie and the deadline.
+
 **Neutral**
 - If the per-invocation read becomes a measured bottleneck (roadmap step 15), a short-lived revocation cache or a push-based disconnect can replace it behind the same contract, under its own ADR.
 

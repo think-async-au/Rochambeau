@@ -61,7 +61,8 @@ Warnings are errors (`Directory.Build.props`: nullable, analyzers `Recommended`,
   explicitly — only Development auto-migrates.
 - **Real-time:** one SignalR hub per module (`/hubs/play`, `/hubs/chat`). The server is
   authoritative: moves are stored hidden and broadcast only after both are committed; clients never
-  decide outcomes.
+  decide outcomes. Every SignalR hook in `web/src/shared/realtime/` uses `withAutomaticReconnect`
+  (a connection idle for 7 days is refused and must reconnect with the cookie — accounts ADR-0004).
 - **API:** Minimal API endpoints grouped per module under `/api`; OpenAPI at `/openapi/v1.json` in Development.
 - **Auth:** ASP.NET Core Identity with cookies; the SPA is same-origin with the API.
 - **Frontend:** Tailwind utility classes only (tokens in `web/src/index.css` `@theme`); TanStack

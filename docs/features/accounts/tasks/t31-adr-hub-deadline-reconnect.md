@@ -9,8 +9,8 @@ files_hint: ["docs/features/accounts/adr/0004-expose-acting-account-through-iden
 owner: "a.udalov"
 estimate: "XS"
 origin: "review-2026-11-14-2 R2"
-status: "todo"
-step: "SELECT"
+status: "done"
+step: "COMMIT"
 ---
 
 <!-- Follow-up task added by implement from the review record. The finding is quoted from
