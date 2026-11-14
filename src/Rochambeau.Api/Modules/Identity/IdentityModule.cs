@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
+using Rochambeau.Api.Common.Commands;
 using Rochambeau.Api.Common.Persistence;
 using Rochambeau.Api.Modules.Identity.Application;
+using Rochambeau.Api.Modules.Identity.Application.ChangeRole;
 using Rochambeau.Api.Modules.Identity.Application.LogIn;
 using Rochambeau.Api.Modules.Identity.Application.Profiles;
 using Rochambeau.Api.Modules.Identity.Application.Register;
+using Rochambeau.Api.Modules.Identity.Commands;
 using Rochambeau.Api.Modules.Identity.Contracts;
 using Rochambeau.Api.Modules.Identity.Domain;
 using Rochambeau.Api.Modules.Identity.Endpoints;
@@ -54,6 +57,9 @@ public static class IdentityModule
         services.AddScoped<LogInHandler>();
         services.AddScoped<GetOwnProfileHandler>();
         services.AddScoped<GetPublicProfileHandler>();
+        services.AddScoped<ChangeRoleHandler>();
+        services.AddOperatorCommand<GrantAdminCommand>();
+        services.AddOperatorCommand<RevokeAdminCommand>();
 
         // Deny by default (SAD §8): every endpoint needs a logged-in Account unless it opts out.
         services.AddAuthorizationBuilder()

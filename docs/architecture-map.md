@@ -59,8 +59,8 @@ The target modules follow ADR [0002](adr/0002-use-modular-monolith-with-feature-
 | Module | Path | Layers | Wired at | Responsibility |
 |---|---|---|---|---|
 | Host | `src/Rochambeau.Api/` | composition root | `src/Rochambeau.Api/Program.cs` (target) | Wires modules, auth, SignalR, ProblemDetails, OpenAPI. Serves the built SPA in production. |
-| Common | `src/Rochambeau.Api/Common/` | shared kernel | — | Error/result types, ID generation, clock abstraction, persistence base (`AppDbContext`) |
-| Identity | `src/Rochambeau.Api/Modules/Identity/` | Domain / Application / Infrastructure / Endpoints | `IdentityModule.cs` (target) | Registration, login, profile, roles |
+| Common | `src/Rochambeau.Api/Common/` | shared kernel | — | `Results/` (`Result<T>` / `Error`), `Http/` (ProblemDetails mapping, client-header filter), `Commands/` (operator-command registry and the `Program.cs` dispatch hook), `Time/`, `Persistence/` (`AppDbContext`) |
+| Identity | `src/Rochambeau.Api/Modules/Identity/` | Domain / Application / Infrastructure / Endpoints / Commands + Contracts | `IdentityModule.cs` | Registration, login, profile, roles |
 | Play | `src/Rochambeau.Api/Modules/Play/` | Domain / Application / Infrastructure / Endpoints + Hubs | `PlayModule.cs` (target) | Matchmaking (random or chosen opponent), server-authoritative match state, results |
 | Chat | `src/Rochambeau.Api/Modules/Chat/` | Domain / Application / Infrastructure / Hubs | `ChatModule.cs` (target) | In-game chat messages |
 | Admin | `src/Rochambeau.Api/Modules/Admin/` | Domain / Application / Infrastructure / Endpoints | `AdminModule.cs` (target) | Moderation (e.g. banning users) |
@@ -75,7 +75,7 @@ Scaffold creates only Host, Common and the empty test projects. Feature modules 
 These are target conventions. Scaffold materialises the first example of each, and the citations become real after the next `survey`.
 
 - **Module wiring / registration:** each module has a static `<Name>Module` class with `Add<Name>Module(this IServiceCollection, IConfiguration)` and `Map<Name>Module(this IEndpointRouteBuilder)`. `Program.cs` calls both and nothing else module-specific.
-- **Module boundaries:** a module may only call another module through that module's `Contracts/` namespace, which holds public interfaces and DTOs. It never touches another module's entities or tables. Within a module the layers are `Domain → Application → Infrastructure/Endpoints/Hubs`, and Domain has no framework dependencies.
+- **Module boundaries:** a module may only call another module through that module's `Contracts/` namespace, which holds public interfaces and DTOs. It never touches another module's entities or tables. Within a module the layers are `Domain → Application → Infrastructure/Endpoints/Hubs/Commands`, and Domain has no framework dependencies. `Commands/` holds operator commands (an entry adapter like Endpoints, run with the API executable on the host); a module registers them in `Add<Name>Module` with `AddOperatorCommand<T>()`, and `Program.cs` has one generic dispatch line that runs a named command and exits without serving HTTP (accounts SAD §1 override).
 - **Error handling:** domain and application code return `Result<T>` / `Error` (code, message, type) instead of throwing for expected failures. HTTP maps errors to **ProblemDetails (RFC 9457)** with an `errorCode` extension. Hub methods return a typed `HubResult<T>`. Unexpected exceptions go to the global exception handler → 500 ProblemDetails.
 - **IDs:** `Guid` generated in the application layer with `Guid.CreateVersion7()` (time-sortable UUIDv7). The database does not generate keys.
 - **Time:** inject `TimeProvider`; never call `DateTime.UtcNow` directly. Store `timestamptz` in UTC.

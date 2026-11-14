@@ -21,6 +21,7 @@ Testcontainers integration tests).
 | Local DB | `docker compose up -d` (PostgreSQL 17 on :5432, db/user/password `rochambeau`) |
 | Run API | `dotnet run --project src/Rochambeau.Api` (http://localhost:5168; applies migrations in Development) |
 | Run web | `npm --prefix web run dev` (Vite proxies `/api` and `/hubs` to the API) |
+| Operator: grant / revoke admin | `dotnet run --project src/Rochambeau.Api -- grant-admin <username>` · `... -- revoke-admin <username>` (runs and exits; ends the Account's sessions) |
 | Restore tools | `dotnet tool restore` (dotnet-ef) |
 | Add migration | `dotnet ef migrations add <PascalName> --project src/Rochambeau.Api --output-dir Common/Persistence/Migrations` |
 | Apply / revert | `dotnet ef database update --project src/Rochambeau.Api` · `... database update 0` |
@@ -31,11 +32,13 @@ Warnings are errors (`Directory.Build.props`: nullable, analyzers `Recommended`,
 
 - `src/Rochambeau.Api/` — the single ASP.NET Core host (modular monolith). `Program.cs` only wires
   cross-cutting concerns and calls each module's `Add<Name>Module` / `Map<Name>Module`.
-- `src/Rochambeau.Api/Common/` — shared kernel: result/error types, IDs, clock, `Persistence/`
-  (`AppDbContext`, migrations).
+- `src/Rochambeau.Api/Common/` — shared kernel: `Results/` (`Result<T>` / `Error`), `Http/` (Error →
+  ProblemDetails, client-header filter), `Commands/` (operator-command registry + the single
+  `Program.cs` dispatch hook), `Time/`, `Persistence/` (`AppDbContext`, migrations).
 - `src/Rochambeau.Api/Modules/<Name>/` — one module per bounded area (Identity, Play, Chat, Admin;
-  later Competitions, Forum). Layers `Domain → Application → Infrastructure / Endpoints / Hubs`,
-  plus `Contracts/` (public interfaces + DTOs) and `<Name>Module.cs`.
+  later Competitions, Forum). Layers `Domain → Application → Infrastructure / Endpoints / Hubs / Commands`
+  (`Commands/` = operator commands run on the host, e.g. `grant-admin <username>`), plus
+  `Contracts/` (public interfaces + DTOs) and `<Name>Module.cs`.
 - `tests/Rochambeau.UnitTests/<Module>/` — xUnit, no I/O.
 - `tests/Rochambeau.IntegrationTests/<Module>/` — xUnit + `WebApplicationFactory` + Testcontainers
   PostgreSQL (`Infrastructure/PostgresFixture`, one container per collection; `ApiFactory`).

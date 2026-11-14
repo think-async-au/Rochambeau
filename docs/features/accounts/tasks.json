@@ -259,7 +259,7 @@
         "docs/architecture-map.md"
       ],
       "file": "docs/features/accounts/tasks/t12-operator-command-change-role.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T13",

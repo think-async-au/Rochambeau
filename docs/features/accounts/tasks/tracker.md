@@ -19,7 +19,7 @@
 | T9 | [Log in through POST /api/v1/session with lockout and enumeration-safe errors](./t09-login-endpoint-lockout.md) | ports | a.udalov | M | T7 | done | COMMIT |
 | T10 | [Serve GET /api/v1/me and log out with DELETE /api/v1/session](./t10-own-profile-and-logout.md) | ports | a.udalov | M | T9 | done | COMMIT |
 | T11 | [Serve the public Profile through GET /api/v1/profiles/{username}](./t11-public-profile-endpoint.md) | ports | a.udalov | S | T7 | done | COMMIT |
-| T12 | [Add the operator-command hook and the grant-admin / revoke-admin ChangeRole flow](./t12-operator-command-change-role.md) | app | a.udalov | M | T10 | todo | — |
+| T12 | [Add the operator-command hook and the grant-admin / revoke-admin ChangeRole flow](./t12-operator-command-change-role.md) | app | a.udalov | M | T10 | done | COMMIT |
 | T13 | [Revalidate the session on every hub invocation with SessionRevalidationHubFilter](./t13-session-revalidation-hub-filter.md) | infra | a.udalov | M | T12 | todo | — |
 | T14 | [Measure the spec §6 latency targets for register, log in and view a profile](./t14-latency-nfr-tests.md) | tests | a.udalov | S | T8, T9, T11 | todo | — |
 | T15 | [Add the shared API client and the «me» query to the SPA](./t15-web-api-client-and-me-query.md) | ui | a.udalov | S | — | todo | — |
