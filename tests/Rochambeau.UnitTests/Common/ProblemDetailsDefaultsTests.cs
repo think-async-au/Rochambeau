@@ -9,19 +9,15 @@ namespace Rochambeau.UnitTests.Common;
 /// <summary>Framework-written error responses stay inside the contract (contracts/openapi.yaml · ProblemDetails).</summary>
 public class ProblemDetailsDefaultsTests
 {
-    [Theory]
-    [InlineData(StatusCodes.Status400BadRequest)]
-    [InlineData(StatusCodes.Status415UnsupportedMediaType)]
-    public void A_body_the_framework_cannot_read_is_a_400_with_common_invalid_request(int frameworkStatus)
+    [Fact]
+    public void A_body_the_framework_cannot_bind_is_a_400_with_common_invalid_request()
     {
         var http = new DefaultHttpContext();
-        http.Response.StatusCode = frameworkStatus;
-        var problem = new ProblemDetails { Status = frameworkStatus };
+        http.Response.StatusCode = StatusCodes.Status400BadRequest;
+        var problem = new ProblemDetails { Status = StatusCodes.Status400BadRequest };
 
         Customize(new ProblemDetailsContext { HttpContext = http, ProblemDetails = problem });
 
-        Assert.Equal(StatusCodes.Status400BadRequest, http.Response.StatusCode);
-        Assert.Equal(StatusCodes.Status400BadRequest, problem.Status);
         Assert.Equal("common.invalid_request", problem.Extensions["errorCode"]);
         Assert.Equal("The request could not be read.", problem.Title);
     }

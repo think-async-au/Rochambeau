@@ -18,6 +18,7 @@ var app = builder.Build();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 app.UseClientHeaderCheck();
+app.UseJsonBodyCheck();
 app.UseAuthentication();
 app.UseAuthorization();
 
