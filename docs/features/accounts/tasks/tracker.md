@@ -42,5 +42,7 @@
 | T32 | [Prove that opening a real-time connection counts as activity](./t32-negotiate-counts-as-activity.md) | tests | a.udalov | XS | T20 | done | COMMIT |
 | T33 | [Bring 403 and 415 error responses inside the contract](./t33-contract-403-415.md) | ports | a.udalov | S | T23 | done | COMMIT |
 | T34 | [Resolve ICurrentAccount in a hub's OnDisconnectedAsync](./t34-hub-disconnect-current-account.md) | infra | a.udalov | S | T19 | done | COMMIT |
+| T35 | [Prove ICurrentAccount carries the Administrator role on a hub connection](./t35-hub-administrator-current-account.md) | tests | a.udalov | XS | T12, T19 | todo | SELECT |
+| T36 | [Detect a request body on HTTP/2 and HTTP/3 in the JSON-body check](./t36-json-body-detection-http2.md) | ports | a.udalov | XS | T33 | todo | SELECT |
 
-**Total:** 34 tasks (T19–T29 are follow-ups from `_review/review-2026-11-14.md`; T30–T34 from `_review/review-2026-11-14-2.md`).
+**Total:** 36 tasks (T19–T29 are follow-ups from `_review/review-2026-11-14.md`; T30–T34 from `_review/review-2026-11-14-2.md`; T35–T36 from `_review/review-2026-11-14-3.md`).

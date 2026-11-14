@@ -678,6 +678,42 @@
       ],
       "file": "docs/features/accounts/tasks/t34-hub-disconnect-current-account.md",
       "status": "done"
+    },
+    {
+      "id": "T35",
+      "title": "Prove ICurrentAccount carries the Administrator role on a hub connection",
+      "layer": "tests",
+      "deps": [
+        "T12",
+        "T19"
+      ],
+      "acs": [
+        "AC-13",
+        "AC-08"
+      ],
+      "dod": "Integration test: register, promote through the operator role-change path, log in again, connect to the test hub; WhoAmI returns the username and AccountRole.Administrator. Unit + integration + format clean.",
+      "files_hint": [
+        "tests/Rochambeau.IntegrationTests/Identity/HubSessionRevalidationTests.cs",
+        "tests/Rochambeau.IntegrationTests/Infrastructure/TestHubHost.cs"
+      ],
+      "file": "docs/features/accounts/tasks/t35-hub-administrator-current-account.md",
+      "status": "todo"
+    },
+    {
+      "id": "T36",
+      "title": "Detect a request body on HTTP/2 and HTTP/3 in the JSON-body check",
+      "layer": "ports",
+      "deps": [
+        "T33"
+      ],
+      "acs": [],
+      "dod": "JsonBodyMiddleware treats a request as having a body when IHttpRequestBodyDetectionFeature.CanHaveBody is true, keeping the length / Transfer-Encoding check as a fallback; unit test with a body-detection feature and no Content-Length gets 400 common.invalid_request; a bodiless request still passes. Unit + format clean.",
+      "files_hint": [
+        "src/Rochambeau.Api/Common/Http/JsonBodyMiddleware.cs",
+        "tests/Rochambeau.UnitTests/Common/JsonBodyMiddlewareTests.cs"
+      ],
+      "file": "docs/features/accounts/tasks/t36-json-body-detection-http2.md",
+      "status": "todo"
     }
   ]
 }
