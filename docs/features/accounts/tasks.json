@@ -507,7 +507,7 @@
         "tests/Rochambeau.UnitTests/Rochambeau.UnitTests.csproj"
       ],
       "file": "docs/features/accounts/tasks/t25-architecture-test-il-scan.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T26",
