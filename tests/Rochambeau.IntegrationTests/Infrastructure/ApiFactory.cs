@@ -32,6 +32,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
         builder.UseEnvironment("Development");
         builder.UseSetting("ConnectionStrings:Rochambeau", _postgres.ConnectionString);
         builder.UseSetting("DataProtection:KeysPath", _keysPath);
+        builder.ConfigureTestServices(services => services.AddSingleton<IStartupFilter, TestRemoteAddress>());
 
         if (Time is { } time)
         {

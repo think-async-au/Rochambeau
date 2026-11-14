@@ -21,9 +21,13 @@ internal static class IdentityEndpoints
         return app;
     }
 
-    private static async Task<IResult> RegisterAsync(RegistrationRequest request, RegisterAccountHandler handler)
+    /// <summary>Cap key when the connection has no remote address, so the cap is never silently skipped.</summary>
+    private const string _unknownAddress = "unknown";
+
+    private static async Task<IResult> RegisterAsync(RegistrationRequest request, RegisterAccountHandler handler, HttpContext context)
     {
-        var result = await handler.HandleAsync(new RegisterAccountCommand(request.Username, request.Email, request.Password))
+        var address = context.Connection.RemoteIpAddress?.ToString() ?? _unknownAddress;
+        var result = await handler.HandleAsync(new RegisterAccountCommand(request.Username, request.Email, request.Password, address))
             .ConfigureAwait(false);
         return result.IsSuccess
             ? TypedResults.Created(OwnProfilePath, OwnProfileResponse.Of(result.Value))

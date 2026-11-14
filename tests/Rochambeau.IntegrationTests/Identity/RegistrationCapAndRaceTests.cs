@@ -1,0 +1,173 @@
+using System.Net;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Time.Testing;
+using Rochambeau.Api.Common.Persistence;
+using Rochambeau.Api.Modules.Identity.Infrastructure.Persistence;
+using Rochambeau.IntegrationTests.Infrastructure;
+
+namespace Rochambeau.IntegrationTests.Identity;
+
+/// <summary>AC-15 registration cap, AC-03b race guard, QG-1 (h).</summary>
+[Collection(PostgresTestGroup.Name)]
+public sealed class RegistrationCapAndRaceTests(PostgresFixture postgres)
+{
+    private const int _racers = 10;
+
+    [Fact]
+    public async Task AC15_sixth_registration_from_one_address_within_an_hour_is_refused_until_the_window_slides()
+    {
+        var time = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        await using var factory = new ApiFactory(postgres, time);
+        using var client = IdentityApi.CreateClient(factory);
+        var address = TestRemoteAddress.Next();
+        for (var i = 0; i < 5; i++)
+        {
+            using var ok = await IdentityApi.RegisterFromAsync(client, address);
+            Assert.Equal(HttpStatusCode.Created, ok.StatusCode);
+            time.Advance(TimeSpan.FromMinutes(1));
+        }
+
+        var refusedName = IdentityApi.NextUsername();
+        using var refused = await IdentityApi.RegisterFromAsync(client, address, refusedName);
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, refused.StatusCode);
+        var body = await refused.ReadJsonAsync();
+        Assert.Equal("identity.registration_cap", body.GetProperty("errorCode").GetString());
+        Assert.Equal("Too many accounts were created from your connection recently. Try again later.", body.GetProperty("title").GetString());
+        Assert.Equal(0, await CountByUsernameAsync(factory, refusedName));
+
+        using var otherAddress = await IdentityApi.RegisterFromAsync(client, TestRemoteAddress.Next());
+        Assert.Equal(HttpStatusCode.Created, otherAddress.StatusCode);
+
+        time.Advance(TimeSpan.FromMinutes(56)); // the first registration is now 60 minutes old
+        using var afterWindow = await IdentityApi.RegisterFromAsync(client, address);
+        Assert.Equal(HttpStatusCode.Created, afterWindow.StatusCode);
+    }
+
+    [Fact]
+    public async Task AC15_failed_attempts_do_not_count()
+    {
+        await using var factory = new ApiFactory(postgres, new FakeTimeProvider(DateTimeOffset.UtcNow));
+        using var client = IdentityApi.CreateClient(factory);
+        var address = TestRemoteAddress.Next();
+        var taken = IdentityApi.NextUsername();
+        (await IdentityApi.RegisterAsync(IdentityApi.CreateClient(factory), taken)).Dispose();
+
+        for (var i = 0; i < 3; i++)
+        {
+            using var invalid = await IdentityApi.RegisterFromAsync(client, address, password: "short");
+            Assert.Equal(HttpStatusCode.BadRequest, invalid.StatusCode);
+            using var conflict = await IdentityApi.RegisterFromAsync(client, address, taken);
+            Assert.Equal(HttpStatusCode.Conflict, conflict.StatusCode);
+        }
+
+        for (var i = 0; i < 5; i++)
+        {
+            using var ok = await IdentityApi.RegisterFromAsync(client, address);
+            Assert.Equal(HttpStatusCode.Created, ok.StatusCode);
+        }
+
+        using var sixth = await IdentityApi.RegisterFromAsync(client, address);
+        Assert.Equal(HttpStatusCode.TooManyRequests, sixth.StatusCode);
+    }
+
+    [Fact]
+    public async Task QG1h_ten_parallel_registrations_from_an_address_with_four_create_exactly_one_more()
+    {
+        await using var factory = new ApiFactory(postgres, new FakeTimeProvider(DateTimeOffset.UtcNow));
+        using var client = IdentityApi.CreateClient(factory);
+        var address = TestRemoteAddress.Next();
+        for (var i = 0; i < 4; i++)
+        {
+            (await IdentityApi.RegisterFromAsync(client, address)).Dispose();
+        }
+
+        var names = Enumerable.Range(0, _racers).Select(_ => IdentityApi.NextUsername()).ToArray();
+        var responses = await Task.WhenAll(names.Select(n => IdentityApi.RegisterFromAsync(client, address, n)));
+
+        try
+        {
+            Assert.Single(responses, r => r.StatusCode == HttpStatusCode.Created);
+            Assert.Equal(_racers - 1, responses.Count(r => r.StatusCode == HttpStatusCode.TooManyRequests));
+            var created = 0;
+            foreach (var name in names)
+            {
+                created += await CountByUsernameAsync(factory, name);
+            }
+
+            Assert.Equal(1, created);
+        }
+        finally
+        {
+            Array.ForEach(responses, r => r.Dispose());
+        }
+    }
+
+    [Fact]
+    public async Task AC03b_parallel_registrations_of_one_username_in_any_case_create_exactly_one_account()
+    {
+        await using var factory = new ApiFactory(postgres);
+        using var client = IdentityApi.CreateClient(factory);
+        var username = "Paper" + Guid.NewGuid().ToString("N")[..10];
+        var variants = Enumerable.Range(0, _racers).Select(i => i % 2 == 0 ? username : username.ToLowerInvariant());
+
+        var responses = await Task.WhenAll(variants.Select(v => IdentityApi.RegisterFromAsync(client, TestRemoteAddress.Next(), v)));
+
+        try
+        {
+            Assert.Single(responses, r => r.StatusCode == HttpStatusCode.Created);
+            var losers = responses.Where(r => r.StatusCode != HttpStatusCode.Created).ToArray();
+            Assert.All(losers, r => Assert.Equal(HttpStatusCode.Conflict, r.StatusCode));
+            foreach (var loser in losers)
+            {
+                Assert.Equal("identity.username_taken", (await loser.ReadJsonAsync()).GetProperty("errorCode").GetString());
+            }
+
+            Assert.Equal(1, await CountByUsernameAsync(factory, username));
+        }
+        finally
+        {
+            Array.ForEach(responses, r => r.Dispose());
+        }
+    }
+
+    [Fact]
+    public async Task AC03b_parallel_registrations_of_one_email_create_exactly_one_account()
+    {
+        await using var factory = new ApiFactory(postgres);
+        using var client = IdentityApi.CreateClient(factory);
+        var email = IdentityApi.NextEmail();
+
+        var responses = await Task.WhenAll(Enumerable.Range(0, _racers).Select(i =>
+            IdentityApi.RegisterFromAsync(client, TestRemoteAddress.Next(), email: i % 2 == 0 ? email : email.ToUpperInvariant())));
+
+        try
+        {
+            Assert.Single(responses, r => r.StatusCode == HttpStatusCode.Created);
+            var losers = responses.Where(r => r.StatusCode != HttpStatusCode.Created).ToArray();
+            Assert.All(losers, r => Assert.Equal(HttpStatusCode.Conflict, r.StatusCode));
+            foreach (var loser in losers)
+            {
+                Assert.Equal("identity.email_unavailable", (await loser.ReadJsonAsync()).GetProperty("errorCode").GetString());
+            }
+
+            await using var scope = factory.Services.CreateAsyncScope();
+            var normalized = email.ToUpperInvariant();
+            Assert.Equal(1, await scope.ServiceProvider.GetRequiredService<AppDbContext>().Set<Account>()
+                .CountAsync(a => a.NormalizedEmail == normalized));
+        }
+        finally
+        {
+            Array.ForEach(responses, r => r.Dispose());
+        }
+    }
+
+    private static async Task<int> CountByUsernameAsync(ApiFactory factory, string username)
+    {
+        await using var scope = factory.Services.CreateAsyncScope();
+        var normalized = username.ToUpperInvariant();
+        return await scope.ServiceProvider.GetRequiredService<AppDbContext>().Set<Account>()
+            .CountAsync(a => a.NormalizedUserName == normalized);
+    }
+}

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Rochambeau.Api.Common.Persistence;
+using Rochambeau.Api.Modules.Identity.Application;
 using Rochambeau.Api.Modules.Identity.Application.Register;
 using Rochambeau.Api.Modules.Identity.Contracts;
 using Rochambeau.Api.Modules.Identity.Domain;
@@ -46,6 +47,7 @@ public static class IdentityModule
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentAccount, CurrentAccount>();
         services.AddScoped<IAccountDirectory, AccountDirectory>();
+        services.AddSingleton<RegistrationCap>();
         services.AddScoped<RegisterAccountHandler>();
 
         // Deny by default (SAD §8): every endpoint needs a logged-in Account unless it opts out.

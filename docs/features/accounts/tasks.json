@@ -165,7 +165,7 @@
         "tests/Rochambeau.IntegrationTests/Identity/"
       ],
       "file": "docs/features/accounts/tasks/t08-registration-cap-and-race-guard.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T9",
