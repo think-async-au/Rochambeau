@@ -1,2 +1,18 @@
 .claude/*.local.md
 .worktrees/
+
+# .NET
+bin/
+obj/
+*.user
+.vs/
+TestResults/
+
+# Node / web
+node_modules/
+web/dist/
+*.tsbuildinfo
+
+# Local secrets / env
+.env
+*.local.json

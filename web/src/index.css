@@ -1,0 +1,5 @@
+@import 'tailwindcss';
+
+/* Design tokens are decided by /sdd:design-system; add them to this @theme block. */
+@theme {
+}

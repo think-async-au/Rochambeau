@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Rochambeau.Api/Rochambeau.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Rochambeau.IntegrationTests/Rochambeau.IntegrationTests.csproj" />
+    <Project Path="tests/Rochambeau.UnitTests/Rochambeau.UnitTests.csproj" />
+  </Folder>
+</Solution>

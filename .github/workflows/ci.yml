@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-test-lint:
+    runs-on: ubuntu-latest
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Restore
+        run: |
+          dotnet restore Rochambeau.slnx
+          dotnet tool restore
+          npm --prefix web ci
+
+      # build_cmd / test_cmd / lint_cmd — keep in sync with docs/architecture-map.md frontmatter.
+      - name: Build
+        run: dotnet build Rochambeau.slnx && npm --prefix web run build
+
+      - name: Test
+        run: dotnet test Rochambeau.slnx && npm --prefix web test
+
+      - name: Lint
+        run: dotnet format Rochambeau.slnx --verify-no-changes && npm --prefix web run lint
