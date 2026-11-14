@@ -477,7 +477,7 @@
         "tests/Rochambeau.IntegrationTests/Identity/LogInTests.cs"
       ],
       "file": "docs/features/accounts/tasks/t23-binding-failure-error-code.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T24",

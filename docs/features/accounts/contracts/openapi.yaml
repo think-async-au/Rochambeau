@@ -89,7 +89,8 @@ paths:
         "400":
           description: |
             A field breaks a rule (AC-02) — `identity.validation_failed`, with `errors` keyed by field;
-            or the client header is missing (accounts ADR-0005) — `common.client_header_required`.
+            or the client header is missing (accounts ADR-0005) — `common.client_header_required`;
+            or the body cannot be read (malformed JSON, empty, wrong type) — `common.invalid_request`.
           content:
             application/problem+json:
               schema:
@@ -181,7 +182,8 @@ paths:
         "400":
           description: |
             Email or password missing/empty — `identity.validation_failed`; or the client header is
-            missing — `common.client_header_required`.
+            missing — `common.client_header_required`; or the body cannot be read —
+            `common.invalid_request`.
           content:
             application/problem+json:
               schema:
@@ -391,6 +393,7 @@ components:
           description: Stable machine code, `module.error_name`.
           enum:
             - common.client_header_required
+            - common.invalid_request
             - identity.validation_failed
             - identity.username_taken
             - identity.email_unavailable

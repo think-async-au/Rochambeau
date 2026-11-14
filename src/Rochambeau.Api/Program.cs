@@ -5,7 +5,7 @@ using Rochambeau.Api.Modules.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddProblemDetails();
+builder.Services.AddProblemDetailsWithErrorCodes();
 builder.Services.AddOpenApi();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSignalR();
