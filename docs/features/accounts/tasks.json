@@ -232,7 +232,7 @@
         "tests/Rochambeau.IntegrationTests/Identity/"
       ],
       "file": "docs/features/accounts/tasks/t11-public-profile-endpoint.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T12",

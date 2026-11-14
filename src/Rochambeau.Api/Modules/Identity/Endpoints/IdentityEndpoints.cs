@@ -37,6 +37,9 @@ internal static class IdentityEndpoints
         api.MapGet("/me", GetOwnProfileAsync)
             .WithName("getOwnProfile");
 
+        api.MapGet("/profiles/{username}", GetPublicProfileAsync)
+            .WithName("getPublicProfile");
+
         return app;
     }
 
@@ -75,6 +78,12 @@ internal static class IdentityEndpoints
         return result.IsSuccess ? TypedResults.Ok(OwnProfileResponse.Of(result.Value)) : result.Error!.ToProblem();
     }
 
+    private static async Task<IResult> GetPublicProfileAsync(string username, GetPublicProfileHandler handler, CancellationToken cancellationToken)
+    {
+        var result = await handler.HandleAsync(username, cancellationToken).ConfigureAwait(false);
+        return result.IsSuccess ? TypedResults.Ok(PublicProfileResponse.Of(result.Value)) : result.Error!.ToProblem();
+    }
+
     /// <summary><c>Retry-After</c> in whole seconds until the lockout ends (openapi.yaml · logIn 423).</summary>
     private static void SetRetryAfter(Error error, HttpContext context, TimeProvider time)
     {
@@ -98,6 +107,13 @@ internal sealed record OwnProfileResponse(string Username, string Email, DateTim
 {
     public static OwnProfileResponse Of(OwnProfile profile) =>
         new(profile.Username, profile.Email, profile.JoinedAt.UtcDateTime, RoleNames.Of(profile.Role));
+}
+
+/// <summary>openapi.yaml · PublicProfile — a closed shape with no email (AC-11).</summary>
+internal sealed record PublicProfileResponse(string Username, DateTime JoinedAt, string Role)
+{
+    public static PublicProfileResponse Of(PublicProfile profile) =>
+        new(profile.Username, profile.JoinedAt.UtcDateTime, RoleNames.Of(profile.Role));
 }
 
 /// <summary>The lower-case role names of the contract (openapi.yaml · AccountRole).</summary>

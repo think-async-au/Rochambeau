@@ -53,6 +53,7 @@ public static class IdentityModule
         services.AddScoped<RegisterAccountHandler>();
         services.AddScoped<LogInHandler>();
         services.AddScoped<GetOwnProfileHandler>();
+        services.AddScoped<GetPublicProfileHandler>();
 
         // Deny by default (SAD §8): every endpoint needs a logged-in Account unless it opts out.
         services.AddAuthorizationBuilder()
