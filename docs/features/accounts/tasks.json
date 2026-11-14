@@ -697,7 +697,7 @@
         "tests/Rochambeau.IntegrationTests/Infrastructure/TestHubHost.cs"
       ],
       "file": "docs/features/accounts/tasks/t35-hub-administrator-current-account.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T36",

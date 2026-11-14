@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -48,6 +49,27 @@ public sealed class HubSessionRevalidationTests(PostgresFixture postgres)
         Assert.Equal(AccountRole.Player, first.Role);
         Assert.NotEqual(Guid.Empty, first.AccountId);
         Assert.Equal(first, second);
+    }
+
+    [Theory]
+    [InlineData(HttpTransportType.WebSockets)]
+    [InlineData(HttpTransportType.LongPolling)]
+    public async Task AC13_a_hub_invocation_sees_an_operator_designated_administrator_as_the_current_account(HttpTransportType transport)
+    {
+        await using var factory = new ApiFactory(postgres);
+        await using var host = factory.WithTestHub();
+        var email = IdentityApi.NextEmail();
+        var (username, _) = await RegisterAsync(host, email);
+        await IdentityTestData.PromoteToAdministratorAsync(host.Services, username);
+        var cookie = await LogInAsync(host, email);
+        await using var connection = host.CreateHubConnection(cookie, transport);
+        await connection.StartAsync();
+
+        var current = await connection.InvokeAsync<AccountIdentity?>("WhoAmI");
+
+        Assert.NotNull(current);
+        Assert.Equal(username, current.Username);
+        Assert.Equal(AccountRole.Administrator, current.Role);
     }
 
     [Theory]
@@ -181,14 +203,28 @@ public sealed class HubSessionRevalidationTests(PostgresFixture postgres)
         return browser.SendAsync(request);
     }
 
-    private static async Task<(string Username, string Cookie)> RegisterAsync(Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program> host)
+    private static async Task<(string Username, string Cookie)> RegisterAsync(
+        Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program> host, string? email = null)
     {
         using var client = host.CreateClient();
         client.DefaultRequestHeaders.Add("X-Rochambeau-Client", "web");
         var username = IdentityApi.NextUsername();
-        using var response = await IdentityApi.RegisterAsync(client, username);
+        using var response = await IdentityApi.RegisterAsync(client, username, email);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var setCookie = Assert.Single(response.Headers.GetValues("Set-Cookie"), c => c.StartsWith(IdentityApi.SessionCookie + "=", StringComparison.Ordinal));
-        return (username, setCookie.Split(';')[0]);
+        return (username, SessionCookieOf(response));
     }
+
+    private static async Task<string> LogInAsync(Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program> host, string email)
+    {
+        using var client = host.CreateClient();
+        client.DefaultRequestHeaders.Add("X-Rochambeau-Client", "web");
+        using var response = await client.PostAsJsonAsync(
+            new Uri("/api/v1/session", UriKind.Relative), new { email, password = IdentityApi.DefaultPassword });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        return SessionCookieOf(response);
+    }
+
+    private static string SessionCookieOf(HttpResponseMessage response) =>
+        Assert.Single(response.Headers.GetValues("Set-Cookie"), c => c.StartsWith(IdentityApi.SessionCookie + "=", StringComparison.Ordinal))
+            .Split(';')[0];
 }
