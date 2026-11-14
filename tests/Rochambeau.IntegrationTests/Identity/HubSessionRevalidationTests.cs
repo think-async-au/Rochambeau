@@ -1,6 +1,7 @@
 using System.Net;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Time.Testing;
 using Rochambeau.Api.Modules.Identity.Contracts;
 using Rochambeau.IntegrationTests.Infrastructure;
 
@@ -45,6 +46,46 @@ public sealed class HubSessionRevalidationTests(PostgresFixture postgres)
         Assert.Equal(AccountRole.Player, first.Role);
         Assert.NotEqual(Guid.Empty, first.AccountId);
         Assert.Equal(first, second);
+    }
+
+    [Fact]
+    public async Task AC08_an_invocation_after_7_days_without_activity_is_refused_and_closes_the_connection()
+    {
+        var time = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        await using var factory = new ApiFactory(postgres, time);
+        await using var host = factory.WithTestHub();
+        var (_, cookie) = await RegisterAsync(host);
+        await using var connection = host.CreateHubConnection(cookie);
+        var closed = new TaskCompletionSource<Exception?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        connection.Closed += error =>
+        {
+            closed.TrySetResult(error);
+            return Task.CompletedTask;
+        };
+        await connection.StartAsync();
+
+        time.Advance(TimeSpan.FromDays(7) + TimeSpan.FromMinutes(1));
+
+        await Assert.ThrowsAnyAsync<Exception>(() => connection.InvokeAsync<AccountIdentity?>("WhoAmI"));
+        await closed.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.Equal(HubConnectionState.Disconnected, connection.State);
+    }
+
+    [Fact]
+    public async Task AC08_hub_invocations_are_activity_and_keep_the_connection_logged_in()
+    {
+        var time = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        await using var factory = new ApiFactory(postgres, time);
+        await using var host = factory.WithTestHub();
+        var (username, cookie) = await RegisterAsync(host);
+        await using var connection = host.CreateHubConnection(cookie);
+        await connection.StartAsync();
+
+        time.Advance(TimeSpan.FromDays(3.5) - TimeSpan.FromMinutes(1));
+        Assert.Equal(username, (await connection.InvokeAsync<AccountIdentity?>("WhoAmI"))?.Username);
+
+        time.Advance(TimeSpan.FromDays(7) - TimeSpan.FromMinutes(1));
+        Assert.Equal(username, (await connection.InvokeAsync<AccountIdentity?>("WhoAmI"))?.Username);
     }
 
     [Fact]

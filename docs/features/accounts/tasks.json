@@ -420,7 +420,7 @@
         "tests/Rochambeau.IntegrationTests/Identity/HubSessionRevalidationTests.cs"
       ],
       "file": "docs/features/accounts/tasks/t20-hub-ticket-expiry.md",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "T21",
