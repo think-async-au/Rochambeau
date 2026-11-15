@@ -714,6 +714,63 @@
       ],
       "file": "docs/features/accounts/tasks/t36-json-body-detection-http2.md",
       "status": "done"
+    },
+    {
+      "id": "T37",
+      "title": "Close the empty-body edge cases of the JSON-body check",
+      "layer": "ports",
+      "deps": [
+        "T36"
+      ],
+      "acs": [],
+      "dod": "Under /api, an explicit Content-Length: 0 counts as no body, and a request that has a body or carries a Content-Type is rejected with 400 common.invalid_request when that Content-Type is not JSON. Unit cases: DELETE, no Content-Type, contentLength 0, canHaveBody true -> next called; empty-body text/plain -> 400. Integration: empty-body text/plain POST /api/v1/accounts -> 400 common.invalid_request. Unit + format clean.",
+      "files_hint": [
+        "src/Rochambeau.Api/Common/Http/JsonBodyMiddleware.cs",
+        "tests/Rochambeau.UnitTests/Common/JsonBodyMiddlewareTests.cs",
+        "tests/Rochambeau.IntegrationTests/Host/BadRequestBodyTests.cs"
+      ],
+      "file": "docs/features/accounts/tasks/t37-json-body-check-empty-body-edges.md",
+      "status": "todo"
+    },
+    {
+      "id": "T38",
+      "title": "Prove ICurrentAccount over HTTP and refuse a Visitor an unknown Profile",
+      "layer": "tests",
+      "deps": [
+        "T5",
+        "T11",
+        "T12"
+      ],
+      "acs": [
+        "AC-08",
+        "AC-13",
+        "AC-10"
+      ],
+      "dod": "SessionWiringTests.ProbeHost gets /__probe/whoami returning ICurrentAccount.Current. Integration: a logged-in Player gets their id, username and Player; an operator-promoted Account, after logging in again, gets Administrator; a Visitor gets nobody. A Visitor looking up an unknown username gets 401 identity.not_authenticated with no profile fields. Unit + format clean; integration NON-red if Docker is absent.",
+      "files_hint": [
+        "tests/Rochambeau.IntegrationTests/Identity/SessionWiringTests.cs",
+        "tests/Rochambeau.IntegrationTests/Identity/PublicProfileTests.cs",
+        "tests/Rochambeau.IntegrationTests/Identity/IdentityApi.cs"
+      ],
+      "file": "docs/features/accounts/tasks/t38-http-current-account-and-unknown-profile.md",
+      "status": "todo"
+    },
+    {
+      "id": "T39",
+      "title": "Prove registration with a missing field reports that field",
+      "layer": "tests",
+      "deps": [
+        "T7"
+      ],
+      "acs": [
+        "AC-02"
+      ],
+      "dod": "Integration: a raw JSON body without email posted to /api/v1/accounts gets 400 identity.validation_failed with errors keyed exactly by email, and no Account is stored. Unit + format clean; integration NON-red if Docker is absent.",
+      "files_hint": [
+        "tests/Rochambeau.IntegrationTests/Identity/RegisterTests.cs"
+      ],
+      "file": "docs/features/accounts/tasks/t39-register-missing-field.md",
+      "status": "todo"
     }
   ]
 }
