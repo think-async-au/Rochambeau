@@ -20,7 +20,7 @@ Players on the web can play real-time rock-paper-scissors against a chosen or ra
 | # | Step | Source | Size | Status |
 |---|---|---|:---:|---|
 | 1 | Scaffold the skeleton — host, test harness + smoke test, migration tooling, CI (`/sdd:scaffold`) | `architecture-map.md` · Module inventory; `docs/features/_scaffold/tasks.json` | S | idea |
-| 2 | Accounts — a visitor can register, log in, and see their profile → [spec](features/accounts/spec.md) | `idea-brief.md` · 7. Recommendation | M | building |
+| 2 | Accounts — a visitor can register, log in, and see their profile → [spec](features/accounts/spec.md) | `idea-brief.md` · 7. Recommendation | M | shipped |
 | 3 | Real-time match against a chosen opponent — challenge a named player, both commit hidden moves, the server reveals the result | `idea-brief.md` · 7. Recommendation | L | idea |
 | 4 | Random matchmaking — join a queue and get paired into a match with whoever else is waiting | `idea-brief.md` · 7. Recommendation | S | idea |
 | 5 | In-game chat — the two players of a match can message each other during it | `idea-brief.md` · 7. Recommendation | S | idea |
@@ -109,4 +109,4 @@ All zones are targets from `docs/architecture-map.md` · Module inventory; none 
 
 | Step | Shipped | Link |
 |---|---|---|
-| — | — | — |
+| 2 · Accounts | 2026-11-15 | [changelog](features/accounts/_ship/changelog.md) · PR: pending |
