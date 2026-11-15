@@ -54,4 +54,20 @@ public sealed class BadRequestBodyTests(PostgresFixture postgres)
         Assert.Equal(400, problem.GetProperty("status").GetInt32());
         Assert.False(response.Headers.Contains("Set-Cookie"));
     }
+
+    [Theory]
+    [InlineData("/api/v1/accounts")]
+    [InlineData("/api/v1/session")]
+    public async Task An_empty_body_that_is_not_json_is_a_400_problem_with_an_error_code(string path)
+    {
+        await using var factory = new ApiFactory(postgres);
+        using var client = IdentityApi.CreateClient(factory);
+        using var content = new StringContent(string.Empty, Encoding.UTF8, "text/plain");
+
+        using var response = await client.PostAsync(new Uri(path, UriKind.Relative), content);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.ReadJsonAsync();
+        Assert.Equal("common.invalid_request", problem.GetProperty("errorCode").GetString());
+    }
 }

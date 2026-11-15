@@ -44,7 +44,7 @@
 | T34 | [Resolve ICurrentAccount in a hub's OnDisconnectedAsync](./t34-hub-disconnect-current-account.md) | infra | a.udalov | S | T19 | done | COMMIT |
 | T35 | [Prove ICurrentAccount carries the Administrator role on a hub connection](./t35-hub-administrator-current-account.md) | tests | a.udalov | XS | T12, T19 | done | COMMIT |
 | T36 | [Detect a request body on HTTP/2 and HTTP/3 in the JSON-body check](./t36-json-body-detection-http2.md) | ports | a.udalov | XS | T33 | done | COMMIT |
-| T37 | [Close the empty-body edge cases of the JSON-body check](./t37-json-body-check-empty-body-edges.md) | ports | a.udalov | XS | T36 | todo | SELECT |
+| T37 | [Close the empty-body edge cases of the JSON-body check](./t37-json-body-check-empty-body-edges.md) | ports | a.udalov | XS | T36 | done | COMMIT |
 | T38 | [Prove ICurrentAccount over HTTP and refuse a Visitor an unknown Profile](./t38-http-current-account-and-unknown-profile.md) | tests | a.udalov | XS | T5, T11, T12 | todo | SELECT |
 | T39 | [Prove registration with a missing field reports that field](./t39-register-missing-field.md) | tests | a.udalov | XS | T7 | todo | SELECT |
 

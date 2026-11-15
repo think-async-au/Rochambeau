@@ -4,8 +4,9 @@ using Rochambeau.Api.Common.Results;
 namespace Rochambeau.Api.Common.Http;
 
 /// <summary>
-/// Every request body under <c>/api</c> is JSON (contracts/openapi.yaml). A body with any other
-/// Content-Type is rejected with <c>400 common.invalid_request</c> before authentication. Routing would
+/// Every request body under <c>/api</c> is JSON (contracts/openapi.yaml). A request with a body, or
+/// with a Content-Type even on an empty body, whose Content-Type is not JSON is rejected with
+/// <c>400 common.invalid_request</c> before authentication. Routing would
 /// otherwise pick the framework's 415 endpoint, which the deny-by-default policy answers with a 401
 /// for a Visitor. An endpoint that ever accepts another media type (an upload) must be exempted here.
 /// </summary>
@@ -22,7 +23,7 @@ public sealed class JsonBodyMiddleware(RequestDelegate next)
 
         var request = context.Request;
         if (request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase)
-            && HasBody(context)
+            && (HasBody(context) || request.ContentType is not null)
             && !request.HasJsonContentType())
         {
             await InvalidRequest.ToProblem().ExecuteAsync(context).ConfigureAwait(false);
@@ -33,13 +34,21 @@ public sealed class JsonBodyMiddleware(RequestDelegate next)
     }
 
     /// <summary>
-    /// The server's body-detection feature covers every protocol (HTTP/2 and HTTP/3 have no
+    /// A declared <c>Content-Length: 0</c> is no body, even when an HTTP/2 client ends the stream on a
+    /// separate empty DATA frame (the server then reports that a body can follow). Otherwise the
+    /// server's body-detection feature covers every protocol (HTTP/2 and HTTP/3 have no
     /// Transfer-Encoding, so a streamed body there carries no length). The length and
-    /// Transfer-Encoding test is the fallback for a host without that feature.
+    /// Transfer-Encoding test is the fallback for a host without that feature. A non-JSON
+    /// Content-Type is rejected even with an empty body (see <see cref="InvokeAsync"/>).
     /// </summary>
     private static bool HasBody(HttpContext context)
     {
         var request = context.Request;
+        if (request.ContentLength == 0)
+        {
+            return false;
+        }
+
         return context.Features.Get<IHttpRequestBodyDetectionFeature>()?.CanHaveBody == true
             || request.ContentLength > 0
             || request.Headers.TransferEncoding.Count > 0;

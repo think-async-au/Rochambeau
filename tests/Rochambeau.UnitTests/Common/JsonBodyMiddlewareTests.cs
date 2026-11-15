@@ -48,6 +48,35 @@ public class JsonBodyMiddlewareTests
         Assert.True(await RunAsync(http));
     }
 
+    [Fact]
+    public async Task A_declared_zero_length_without_a_content_type_passes_even_when_the_server_reports_a_body()
+    {
+        // HTTP/2: HEADERS with content-length 0, then END_STREAM on an empty DATA frame.
+        var http = Request("DELETE", contentType: null, contentLength: 0, canHaveBody: true);
+
+        Assert.True(await RunAsync(http));
+    }
+
+    [Fact]
+    public async Task An_empty_body_with_a_content_type_that_is_not_json_is_rejected()
+    {
+        var http = Request("POST", "text/plain", contentLength: 0, canHaveBody: false);
+
+        var calledNext = await RunAsync(http);
+
+        Assert.False(calledNext);
+        Assert.Equal(StatusCodes.Status400BadRequest, http.Response.StatusCode);
+        Assert.Equal("common.invalid_request", await ErrorCodeAsync(http));
+    }
+
+    [Fact]
+    public async Task An_empty_body_with_a_json_content_type_passes_to_the_binder()
+    {
+        var http = Request("POST", "application/json", contentLength: 0, canHaveBody: false);
+
+        Assert.True(await RunAsync(http));
+    }
+
     private static DefaultHttpContext Request(string method, string? contentType, long? contentLength, bool? canHaveBody)
     {
         var http = new DefaultHttpContext
