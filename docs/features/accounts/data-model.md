@@ -9,7 +9,7 @@ feature_size: "M"
 # Data model — accounts
 
 > **Upstream:** [spec](spec.md) §5, §6.1 · [SAD](sad.md) §5, §6, §8 · accounts ADR [0001](adr/0001-use-identity-core-with-module-owned-mappings.md), [0002](adr/0002-validate-cookie-security-stamp-on-every-request.md), [0003](adr/0003-store-one-role-per-account-in-a-column.md) · repo ADR [0003](../../adr/0003-use-ef-core-single-dbcontext-schema-per-module.md) · [architecture map](../../architecture-map.md) · Persistence, Migrations.
-> **Staged migrations:** [`migrations/`](migrations/). `implement` turns them into an EF Core migration. Nothing is in the live `Common/Persistence/Migrations/` tree yet.
+> **Staged migrations:** [`migrations/`](migrations/). `implement` turned them into the live EF Core migration `Common/Persistence/Migrations/20261114133227_AddIdentityAccounts.cs`.
 
 ## Aggregates
 
@@ -67,7 +67,7 @@ The column shape follows what `IdentityDbContext` would map for `IdentityUser<Gu
 | `id` | `uuid` | PK `pk_accounts` | `Guid.CreateVersion7()` set before `UserManager.CreateAsync` (accounts ADR-0001). The only Account reference other modules store. |
 | `user_name` | `varchar(20)` | NOT NULL | Username as the owner typed it, after trimming (AC-02, AC-03). 3–20 Latin letters, digits, `_`, `-`, checked in Domain. |
 | `normalized_user_name` | `varchar(20)` | NOT NULL, UNIQUE (`ix_accounts_normalized_user_name`) | Identity `ILookupNormalizer` (upper-invariant). The username is ASCII-only, so the length never changes. Race guard for AC-03b. |
-| `email` | `varchar(256)` | NOT NULL | Shown only to the owner (AC-09, spec §6.1). The 256 matches the Identity default. See the TBD below. |
+| `email` | `varchar(256)` | NOT NULL | Shown only to the owner (AC-09, spec §6.1). The 256 matches the Identity default. The Domain rule caps an email at 254 characters (RFC 5321 path limit, `EmailAddress.MaxLength`), so an overlong email is a field error, never a 500. |
 | `normalized_email` | `varchar(256)` | NOT NULL, UNIQUE (`ix_accounts_normalized_email`) | Made **unique** on purpose. Identity's default email index is not (accounts ADR-0001). Race guard for AC-03b. |
 | `email_confirmed` | `boolean` | NOT NULL | Always `false` in this step. Email confirmation is a spec §3 non-goal. Mapped because `SignInManager` reads it. |
 | `password_hash` | `text` | NOT NULL | Identity `PasswordHasher` (PBKDF2) output. The password is never stored readable (spec §6.1). |
@@ -100,8 +100,6 @@ The column shape follows what `IdentityDbContext` would map for `IdentityUser<Gu
 Keep these index names stable. Application code matches on them.
 
 **Adding `moderator` later:** it takes a migration that drops and re-adds `ck_accounts_role` with the wider set. That is the accepted cost of the CHECK.
-
-<!-- TBD: spec AC-02 requires a well-formed email but gives no maximum length. The column is varchar(256), so the Domain email rule must reject anything longer (or 254, the RFC 5321 path limit), otherwise an overlong email reaches the database as a 500 instead of a field error. Resolve in `clarify accounts`, or fix in Domain during `implement`. -->
 
 ## Indexes
 
