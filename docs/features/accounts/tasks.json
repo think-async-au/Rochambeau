@@ -771,6 +771,22 @@
       ],
       "file": "docs/features/accounts/tasks/t39-register-missing-field.md",
       "status": "done"
+    },
+    {
+      "id": "T40",
+      "title": "Limit the empty-body Content-Type check to methods that carry a body",
+      "layer": "ports",
+      "deps": [
+        "T37"
+      ],
+      "acs": [],
+      "dod": "The empty-body Content-Type check applies only to POST / PUT / PATCH. Unit: DELETE and GET with text/plain, CL 0, canHaveBody false -> next called; the empty-body text/plain POST -> 400 still holds. Unit + format clean.",
+      "files_hint": [
+        "src/Rochambeau.Api/Common/Http/JsonBodyMiddleware.cs",
+        "tests/Rochambeau.UnitTests/Common/JsonBodyMiddlewareTests.cs"
+      ],
+      "file": "docs/features/accounts/tasks/t40-json-body-check-bodyless-methods.md",
+      "status": "todo"
     }
   ]
 }
