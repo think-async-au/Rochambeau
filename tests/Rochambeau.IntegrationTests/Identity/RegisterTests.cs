@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
@@ -78,6 +79,32 @@ public sealed class RegisterTests(PostgresFixture postgres)
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal([field], (await response.ReadJsonAsync()).GetProperty("errors").PropertyNames());
+    }
+
+    [Theory]
+    [InlineData("email")]
+    [InlineData("password")]
+    public async Task AC02_a_missing_field_is_reported_as_that_field_and_no_account_is_created(string missing)
+    {
+        await using var factory = new ApiFactory(postgres);
+        using var client = IdentityApi.CreateClient(factory);
+        var username = IdentityApi.NextUsername();
+        var fields = new Dictionary<string, string>
+        {
+            ["username"] = username,
+            ["email"] = IdentityApi.NextEmail(),
+            ["password"] = IdentityApi.DefaultPassword,
+        };
+        fields.Remove(missing);
+
+        // A raw body: the property is absent, not sent as null.
+        using var response = await client.PostAsJsonAsync(new Uri("/api/v1/accounts", UriKind.Relative), fields);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.ReadJsonAsync();
+        Assert.Equal("identity.validation_failed", body.GetProperty("errorCode").GetString());
+        Assert.Equal([missing], body.GetProperty("errors").PropertyNames());
+        Assert.Null(await FindAsync(factory, username));
     }
 
     [Fact]

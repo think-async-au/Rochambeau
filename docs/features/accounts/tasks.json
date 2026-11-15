@@ -770,7 +770,7 @@
         "tests/Rochambeau.IntegrationTests/Identity/RegisterTests.cs"
       ],
       "file": "docs/features/accounts/tasks/t39-register-missing-field.md",
-      "status": "todo"
+      "status": "done"
     }
   ]
 }

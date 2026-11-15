@@ -46,6 +46,6 @@
 | T36 | [Detect a request body on HTTP/2 and HTTP/3 in the JSON-body check](./t36-json-body-detection-http2.md) | ports | a.udalov | XS | T33 | done | COMMIT |
 | T37 | [Close the empty-body edge cases of the JSON-body check](./t37-json-body-check-empty-body-edges.md) | ports | a.udalov | XS | T36 | done | COMMIT |
 | T38 | [Prove ICurrentAccount over HTTP and refuse a Visitor an unknown Profile](./t38-http-current-account-and-unknown-profile.md) | tests | a.udalov | XS | T5, T11, T12 | done | COMMIT |
-| T39 | [Prove registration with a missing field reports that field](./t39-register-missing-field.md) | tests | a.udalov | XS | T7 | todo | SELECT |
+| T39 | [Prove registration with a missing field reports that field](./t39-register-missing-field.md) | tests | a.udalov | XS | T7 | done | COMMIT |
 
 **Total:** 39 tasks (T19–T29 are follow-ups from `_review/review-2026-11-14.md`; T30–T34 from `_review/review-2026-11-14-2.md`; T35–T36 from `_review/review-2026-11-14-3.md`; T37–T39 from `_review/review-2026-11-15.md`).
