@@ -46,8 +46,8 @@ public sealed class JsonBodyMiddleware(RequestDelegate next)
     /// separate empty DATA frame (the server then reports that a body can follow). Otherwise the
     /// server's body-detection feature covers every protocol (HTTP/2 and HTTP/3 have no
     /// Transfer-Encoding, so a streamed body there carries no length). The length and
-    /// Transfer-Encoding test is the fallback for a host without that feature. A non-JSON
-    /// Content-Type is rejected even with an empty body (see <see cref="InvokeAsync"/>).
+    /// Transfer-Encoding test is the fallback for a host without that feature. On a POST / PUT /
+    /// PATCH, a non-JSON Content-Type is rejected even with an empty body (see <see cref="CarriesABody"/>).
     /// </summary>
     private static bool HasBody(HttpContext context)
     {

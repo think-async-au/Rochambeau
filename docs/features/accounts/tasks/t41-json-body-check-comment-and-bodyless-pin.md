@@ -9,8 +9,8 @@ files_hint: ["src/Rochambeau.Api/Common/Http/JsonBodyMiddleware.cs", "tests/Roch
 owner: "a.udalov"
 estimate: "XS"
 origin: "review-2026-11-15-3 R14, R15"
-status: "todo"
-step: "SELECT"
+status: "done"
+step: "COMMIT"
 ---
 
 <!-- Follow-up task added by implement from the review record. The findings are quoted from

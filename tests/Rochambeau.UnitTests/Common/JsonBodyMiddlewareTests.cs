@@ -80,6 +80,20 @@ public class JsonBodyMiddlewareTests
         Assert.True(await RunAsync(http));
     }
 
+    [Theory]
+    [InlineData("GET")]
+    [InlineData("DELETE")]
+    public async Task A_bodyless_method_that_sends_a_body_that_is_not_json_is_rejected(string method)
+    {
+        var http = Request(method, "text/plain", contentLength: 5, canHaveBody: true);
+
+        var calledNext = await RunAsync(http);
+
+        Assert.False(calledNext);
+        Assert.Equal(StatusCodes.Status400BadRequest, http.Response.StatusCode);
+        Assert.Equal("common.invalid_request", await ErrorCodeAsync(http));
+    }
+
     [Fact]
     public async Task An_empty_body_with_a_json_content_type_passes_to_the_binder()
     {
