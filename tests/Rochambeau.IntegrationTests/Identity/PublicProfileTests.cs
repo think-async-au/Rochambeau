@@ -83,6 +83,21 @@ public sealed class PublicProfileTests(PostgresFixture postgres)
         Assert.DoesNotContain(username, await response.Content.ReadAsStringAsync(), StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public async Task AC10_visitor_asking_for_an_unknown_username_is_refused_as_not_logged_in()
+    {
+        await using var factory = new ApiFactory(postgres);
+        using var visitor = IdentityApi.CreateClient(factory);
+        var unknown = IdentityApi.NextUsername();
+
+        using var response = await visitor.GetAsync(ProfileUri(unknown));
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        var body = await response.ReadJsonAsync();
+        Assert.Equal("identity.not_authenticated", body.GetProperty("errorCode").GetString());
+        Assert.DoesNotContain(unknown, await response.Content.ReadAsStringAsync(), StringComparison.OrdinalIgnoreCase);
+    }
+
     private static Uri ProfileUri(string username) =>
         new($"/api/v1/profiles/{Uri.EscapeDataString(username)}", UriKind.Relative);
 }

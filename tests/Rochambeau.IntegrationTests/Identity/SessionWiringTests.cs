@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Rochambeau.Api.Modules.Identity.Contracts;
 using Rochambeau.IntegrationTests.Infrastructure;
 
 namespace Rochambeau.IntegrationTests.Identity;
@@ -116,6 +117,90 @@ public sealed class SessionWiringTests(PostgresFixture postgres)
         Assert.NotEmpty(Directory.GetFiles(factory.KeysPath, "key-*.xml"));
     }
 
+    [Fact]
+    public async Task AC08_an_http_request_sees_the_logged_in_player_as_the_current_account()
+    {
+        await using var factory = new ApiFactory(postgres);
+        await using var host = ProbeHost(factory);
+        using var client = ProbeClient(host);
+        var username = IdentityApi.NextUsername();
+        using (var registered = await IdentityApi.RegisterAsync(client, username))
+        {
+            Assert.Equal(HttpStatusCode.Created, registered.StatusCode);
+        }
+
+        var first = await WhoAmIAsync(client);
+        var second = await WhoAmIAsync(client);
+
+        var expected = await FindAsync(host, username);
+        Assert.Equal(expected.AccountId.ToString(), first.GetProperty("accountId").GetString());
+        Assert.Equal(username, first.GetProperty("username").GetString());
+        Assert.Equal(nameof(AccountRole.Player), first.GetProperty("role").GetString());
+        Assert.Equal(first.GetRawText(), second.GetRawText());
+    }
+
+    [Fact]
+    public async Task AC13_an_http_request_sees_an_operator_designated_administrator_as_the_current_account()
+    {
+        await using var factory = new ApiFactory(postgres);
+        await using var host = ProbeHost(factory);
+        using var client = ProbeClient(host);
+        var username = IdentityApi.NextUsername();
+        var email = IdentityApi.NextEmail();
+        (await IdentityApi.RegisterAsync(client, username, email)).Dispose();
+        await IdentityTestData.PromoteToAdministratorAsync(host.Services, username);
+        using (var loggedIn = await client.PostAsJsonAsync(
+            new Uri("/api/v1/session", UriKind.Relative), new { email, password = IdentityApi.DefaultPassword }))
+        {
+            Assert.Equal(HttpStatusCode.OK, loggedIn.StatusCode);
+        }
+
+        var current = await WhoAmIAsync(client);
+
+        Assert.Equal((await FindAsync(host, username)).AccountId.ToString(), current.GetProperty("accountId").GetString());
+        Assert.Equal(username, current.GetProperty("username").GetString());
+        Assert.Equal(nameof(AccountRole.Administrator), current.GetProperty("role").GetString());
+    }
+
+    [Fact]
+    public async Task AC08_an_http_request_from_a_visitor_has_no_current_account()
+    {
+        await using var factory = new ApiFactory(postgres);
+        await using var host = ProbeHost(factory);
+        using var client = ProbeClient(host);
+
+        using var response = await client.GetAsync(new Uri("/__probe/whoami", UriKind.Relative));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(JsonValueKind.Null, (await response.ReadJsonAsync()).GetProperty("current").ValueKind);
+    }
+
+    private static HttpClient ProbeClient(WebApplicationFactory<Program> host)
+    {
+        var client = host.CreateClient(new() { BaseAddress = new Uri("https://localhost") });
+        client.DefaultRequestHeaders.Add("X-Rochambeau-Client", "web");
+        client.DefaultRequestHeaders.Add(TestRemoteAddress.HeaderName, TestRemoteAddress.Next());
+        return client;
+    }
+
+    /// <summary>The acting account as <see cref="ICurrentAccount"/> resolves it for this request.</summary>
+    private static async Task<JsonElement> WhoAmIAsync(HttpClient client)
+    {
+        using var response = await client.GetAsync(new Uri("/__probe/whoami", UriKind.Relative));
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var current = (await response.ReadJsonAsync()).GetProperty("current");
+        Assert.Equal(JsonValueKind.Object, current.ValueKind);
+        return current;
+    }
+
+    private static async Task<AccountIdentity> FindAsync(WebApplicationFactory<Program> host, string username)
+    {
+        await using var scope = host.Services.CreateAsyncScope();
+        var account = await scope.ServiceProvider.GetRequiredService<IAccountDirectory>().FindByUsernameAsync(username);
+        Assert.NotNull(account);
+        return account;
+    }
+
     /// <summary>
     /// The real host plus a test-only branch under <c>/__probe</c> that runs the host's authentication
     /// scheme and authorization policies with its own endpoints.
@@ -138,6 +223,13 @@ public sealed class SessionWiringTests(PostgresFixture postgres)
                 branch.UseEndpoints(endpoints =>
                 {
                     endpoints.MapGet("/protected", () => "secret");
+                    endpoints.MapGet("/whoami", (ICurrentAccount current) => Results.Ok(new
+                    {
+                        current = current.Current is { } acting
+                            ? new { accountId = acting.AccountId, username = acting.Username, role = acting.Role.ToString() }
+                            : null,
+                    }))
+                        .AllowAnonymous();
                     endpoints.MapGet("/forbid", (HttpContext context) => context.ForbidAsync(IdentityConstants.ApplicationScheme))
                         .AllowAnonymous();
                     endpoints.MapGet("/sign-in", async (HttpContext context) =>
