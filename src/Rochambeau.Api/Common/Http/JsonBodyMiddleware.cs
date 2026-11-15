@@ -4,8 +4,8 @@ using Rochambeau.Api.Common.Results;
 namespace Rochambeau.Api.Common.Http;
 
 /// <summary>
-/// Every request body under <c>/api</c> is JSON (contracts/openapi.yaml). A request with a body, or
-/// with a Content-Type even on an empty body, whose Content-Type is not JSON is rejected with
+/// Every request body under <c>/api</c> is JSON (contracts/openapi.yaml). A request with a body, or a
+/// POST / PUT / PATCH with a Content-Type even on an empty body, whose Content-Type is not JSON is rejected with
 /// <c>400 common.invalid_request</c> before authentication. Routing would
 /// otherwise pick the framework's 415 endpoint, which the deny-by-default policy answers with a 401
 /// for a Visitor. An endpoint that ever accepts another media type (an upload) must be exempted here.
@@ -23,7 +23,7 @@ public sealed class JsonBodyMiddleware(RequestDelegate next)
 
         var request = context.Request;
         if (request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase)
-            && (HasBody(context) || request.ContentType is not null)
+            && (HasBody(context) || (request.ContentType is not null && CarriesABody(request.Method)))
             && !request.HasJsonContentType())
         {
             await InvalidRequest.ToProblem().ExecuteAsync(context).ConfigureAwait(false);
@@ -32,6 +32,14 @@ public sealed class JsonBodyMiddleware(RequestDelegate next)
 
         await next(context).ConfigureAwait(false);
     }
+
+    /// <summary>
+    /// The methods whose operations take a request body. Only these are refused for a non-JSON
+    /// Content-Type on an empty body; a bodyless GET or DELETE with a stray Content-Type passes, as the
+    /// contract documents no <c>invalid_request</c> for them.
+    /// </summary>
+    private static bool CarriesABody(string method) =>
+        HttpMethods.IsPost(method) || HttpMethods.IsPut(method) || HttpMethods.IsPatch(method);
 
     /// <summary>
     /// A declared <c>Content-Length: 0</c> is no body, even when an HTTP/2 client ends the stream on a

@@ -69,6 +69,17 @@ public class JsonBodyMiddlewareTests
         Assert.Equal("common.invalid_request", await ErrorCodeAsync(http));
     }
 
+    [Theory]
+    [InlineData("GET")]
+    [InlineData("DELETE")]
+    public async Task A_bodyless_method_with_a_stray_content_type_that_is_not_json_passes(string method)
+    {
+        // logOut, getOwnProfile and getPublicProfile document no invalid_request (contracts/openapi.yaml).
+        var http = Request(method, "text/plain", contentLength: 0, canHaveBody: false);
+
+        Assert.True(await RunAsync(http));
+    }
+
     [Fact]
     public async Task An_empty_body_with_a_json_content_type_passes_to_the_binder()
     {
