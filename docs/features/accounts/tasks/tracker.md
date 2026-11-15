@@ -48,5 +48,6 @@
 | T38 | [Prove ICurrentAccount over HTTP and refuse a Visitor an unknown Profile](./t38-http-current-account-and-unknown-profile.md) | tests | a.udalov | XS | T5, T11, T12 | done | COMMIT |
 | T39 | [Prove registration with a missing field reports that field](./t39-register-missing-field.md) | tests | a.udalov | XS | T7 | done | COMMIT |
 | T40 | [Limit the empty-body Content-Type check to methods that carry a body](./t40-json-body-check-bodyless-methods.md) | ports | a.udalov | XS | T37 | done | COMMIT |
+| T41 | [Fix the stale HasBody comment and pin non-JSON body rejection on GET and DELETE](./t41-json-body-check-comment-and-bodyless-pin.md) | ports | a.udalov | XS | T40 | todo | SELECT |
 
-**Total:** 40 tasks (T19–T29 are follow-ups from `_review/review-2026-11-14.md`; T30–T34 from `_review/review-2026-11-14-2.md`; T35–T36 from `_review/review-2026-11-14-3.md`; T37–T39 from `_review/review-2026-11-15.md`; T40 from `_review/review-2026-11-15-2.md`).
+**Total:** 41 tasks (T19–T29 are follow-ups from `_review/review-2026-11-14.md`; T30–T34 from `_review/review-2026-11-14-2.md`; T35–T36 from `_review/review-2026-11-14-3.md`; T37–T39 from `_review/review-2026-11-15.md`; T40 from `_review/review-2026-11-15-2.md`; T41 from `_review/review-2026-11-15-3.md`).

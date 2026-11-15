@@ -787,6 +787,22 @@
       ],
       "file": "docs/features/accounts/tasks/t40-json-body-check-bodyless-methods.md",
       "status": "done"
+    },
+    {
+      "id": "T41",
+      "title": "Fix the stale HasBody comment and pin non-JSON body rejection on GET and DELETE",
+      "layer": "ports",
+      "deps": [
+        "T40"
+      ],
+      "acs": [],
+      "dod": "The HasBody comment says the empty-body rejection applies to POST / PUT / PATCH. Unit theory (GET, DELETE) with text/plain, contentLength 5, canHaveBody true -> next not called, 400 common.invalid_request; a mutation wrapping the whole condition in CarriesABody makes it fail. Unit + format clean.",
+      "files_hint": [
+        "src/Rochambeau.Api/Common/Http/JsonBodyMiddleware.cs",
+        "tests/Rochambeau.UnitTests/Common/JsonBodyMiddlewareTests.cs"
+      ],
+      "file": "docs/features/accounts/tasks/t41-json-body-check-comment-and-bodyless-pin.md",
+      "status": "todo"
     }
   ]
 }
